@@ -45,7 +45,7 @@ def input_simjob_filename(setup, tier):
     """Returns the full path to the input file for a `simid` and job index."""
     return str(
         Path(setup["paths"]["macros"])
-        / "{tier}"
+        / f"{tier}"
         / (simjob_rel_basename() + setup["filetypes"]["input"][tier])
     )
 
@@ -79,3 +79,8 @@ def log_file_path(setup, tier):
     return str(
         Path(setup["paths"]["log"]) / f"{tier}" / (simjob_rel_basename() + ".log")
     )
+
+
+def run_command(setup, tier):
+    """"""
+    return "{swenv} " + setup["runcmd"][tier]
