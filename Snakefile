@@ -68,6 +68,7 @@ rule:
     shell:
         patterns.run_command(setup, "ver")
 
+
 rule:
     """Run a single simulation job for the 'raw' tier.
     Uses wildcards `simid` and `jobid`.
