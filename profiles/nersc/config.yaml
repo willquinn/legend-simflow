@@ -1,0 +1,10 @@
+# cores can be in principle 256, because of hyperthreading?
+cores: 128
+
+# NERSC does not want us to profit from cluster execution
+# https://docs.nersc.gov/jobs/workflow/snakemake
+#
+# cluster: slurm
+# local-cores: 20
+# default_resources:
+#   - slurm_account=m2676

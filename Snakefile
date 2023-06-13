@@ -25,7 +25,7 @@ rule all:
 
 wildcard_constraints:
     tier="\w+",
-    simid="\w+",
+    simid="[-\w]+",
     jobid="\w+",
 
 
@@ -49,6 +49,7 @@ for tier, simid, n_macros in simconfigs:
             tier=tier,
             simid=simid,
             setup=setup,
+        threads: 1
         script:
             "scripts/generate_macros.py"
 
@@ -65,5 +66,6 @@ for tier in ["ver", "raw"]:
             patterns.output_simjob_filename(setup, tier=tier),
         log:
             patterns.log_file_path(setup, tier),
+        threads: 1
         shell:
             patterns.run_command(setup, tier)
