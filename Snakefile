@@ -54,18 +54,31 @@ for tier, simid, n_macros in simconfigs:
             "scripts/generate_macros.py"
 
 
-for tier in ["ver", "raw"]:
+rule:
+    """Run a single simulation job for the 'ver' tier.
+    Uses wildcards `simid` and `jobid`.
+    """
+    input:
+        patterns.input_simjob_filename(setup, tier="ver"),
+    output:
+        patterns.output_simjob_filename(setup, tier="ver"),
+    log:
+        patterns.log_file_path(setup, "ver"),
+    threads: 1
+    shell:
+        patterns.run_command(setup, "ver")
 
-    rule:
-        f"""Run a single simulation job for the '{tier}' tier.
-        Uses wildcards `simid` and `jobid`.
-        """
-        input:
-            patterns.input_simjob_filename(setup, tier=tier),
-        output:
-            patterns.output_simjob_filename(setup, tier=tier),
-        log:
-            patterns.log_file_path(setup, tier),
-        threads: 1
-        shell:
-            patterns.run_command(setup, tier)
+rule:
+    """Run a single simulation job for the 'raw' tier.
+    Uses wildcards `simid` and `jobid`.
+    """
+    input:
+        macro=patterns.input_simjob_filename(setup, tier="raw"),
+        verfile=lambda wildcards: patterns.smk_ver_filename_for_raw(setup, wildcards),
+    output:
+        patterns.output_simjob_filename(setup, tier="raw"),
+    log:
+        patterns.log_file_path(setup, "raw"),
+    threads: 1
+    shell:
+        patterns.run_command(setup, "raw")

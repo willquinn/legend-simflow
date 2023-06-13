@@ -33,7 +33,7 @@ def output_simjob_filename(setup, tier, simid, idx):
 
 
 def get_simid_n_macros(setup, tier, simid):
-    """Returns the number of macros that will be generate for a given `tier`
+    """Returns the number of macros that will be generated for a given `tier`
     and `simid`."""
     tdir = template_macro_dir(setup, tier)
 

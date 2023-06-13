@@ -31,8 +31,7 @@ substitutions = {"NUMBER_OF_PRIMARIES": int(n_prim / n_macros)}
 
 # first substitute global variables
 with Path(snakemake.input.template).open() as f:
-    text = f.read()
-    text = utils.subst_vars(text, substitutions, ignore_missing=True)
+    text = utils.subst_vars(f.read(), substitutions, ignore_missing=True)
 
 # then substitute macro-specific variables
 for i in range(n_macros):
@@ -47,8 +46,6 @@ for i in range(n_macros):
     if outver_list:
         substitutions.update({"VERTICES_FILE": outver_list[i]})
 
-    text = utils.subst_vars(text, substitutions)
-
     inname = simjobs.input_simjob_filename(
         snakemake.params.setup, snakemake.params.tier, snakemake.params.simid, i
     )
@@ -56,4 +53,4 @@ for i in range(n_macros):
     smk.utils.makedirs(str(inname.parent))
 
     with inname.open("w") as f:
-        f.write(text)
+        f.write(utils.subst_vars(text, substitutions))

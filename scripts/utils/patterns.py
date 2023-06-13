@@ -5,6 +5,7 @@ the returned (structure of) strings. They are passed to
 :func:`snakemake.io.expand`.
 """
 
+import json
 from pathlib import Path
 from snakemake.io import expand
 
@@ -25,15 +26,16 @@ def genmacro_log_file_path(setup):
     )
 
 
-def template_macro_dir(setup):
+def template_macro_dir(setup, **kwargs):
     """Returns the directory path to the macro templates for the current `tier`."""
-    return Path(setup["paths"]["config"]) / "tier" / "{tier}" / setup["experiment"]
+    tier = expand("{tier}", **kwargs, allow_missing=True)[0]
+    return Path(setup["paths"]["config"]) / "tier" / tier / setup["experiment"]
 
 
 def macro_gen_inputs(setup, **kwargs):
     """Return inputs for `generate_macros` Snakemake rule."""
     expr = {
-        "template": str(template_macro_dir(setup) / "{simid}.template.mage.mac"),
+        "template": str(template_macro_dir(setup) / "{simid}.template.mac"),
         "cfgfile": str(template_macro_dir(setup) / "simconfig.json"),
     }
     for k, v in expr.items():
@@ -50,12 +52,13 @@ def input_simjob_filename(setup, tier):
     )
 
 
-def output_simjob_filename(setup, tier):
+def output_simjob_filename(setup, tier, **kwargs):
     """Returns the full path to the output file for a `simid`, `tier` and job index."""
-    return str(
+    expr = str(
         Path(setup["paths"][f"tier_{tier}"])
         / (simjob_rel_basename() + setup["filetypes"]["output"][tier])
     )
+    return expand(expr, **kwargs, allow_missing=True)[0]
 
 
 def input_simjob_filenames(setup, n_macros, **kwargs):
@@ -82,5 +85,18 @@ def log_file_path(setup, tier):
 
 
 def run_command(setup, tier):
-    """"""
+    """Returns command to build files in tier `tier` prefixed by environment."""
     return "{swenv} " + setup["runcmd"][tier]
+
+
+def smk_ver_filename_for_raw(setup, wildcards):
+    """Returns the vertices file needed for the 'raw' tier job, if needed."""
+    tdir = template_macro_dir(setup, tier="raw")
+
+    with (Path(tdir) / "simconfig.json").open() as f:
+        config = json.load(f)[wildcards.simid]
+
+    if "vertices" in config:
+        return output_simjob_filename(setup, "ver", simid=config["vertices"])
+    else:
+        return []
