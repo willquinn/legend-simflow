@@ -10,7 +10,7 @@ from utils import utils, simjobs
 with open(snakemake.input.cfgfile) as f:
     config = json.load(f)[snakemake.params.simid]
 
-n_prim = config["number_of_primaries"]
+n_prim = config.pop("number_of_primaries")
 n_macros = None
 outver_list = None
 
@@ -18,7 +18,7 @@ outver_list = None
 if "vertices" in config:
     # get list of ver output files
     outver_list = simjobs.gen_list_of_simid_outputs(
-        snakemake.params.setup, "ver", config["vertices"]
+        snakemake.params.setup, "ver", config.pop("vertices")
     )
 
     # if number of jobs is not specified, use number of vertices files
@@ -28,10 +28,20 @@ if "vertices" in config:
 # if n_macros could not be determined, there MUST be an explicit reference to
 # it in the config
 if not n_macros:
-    n_macros = config["number_of_jobs"]
+    n_macros = config.pop("number_of_jobs")
 
 # prepare global substitution rules
 substitutions = {"NUMBER_OF_PRIMARIES": int(n_prim / n_macros)}
+
+# now that we processed the "special" configuration fields, we interpret all
+# the others as variables to be expanded in the template macro
+for k, v in config.items():
+    if isinstance(v, str):
+        substitutions.update({k: v})
+    elif isinstance(v, list) and all(isinstance(s, str) for s in v):
+        substitutions.update({k: "\n".join(v)})
+    else:
+        print(f"WARNING: key '{k}' does not define a valid substitution rule")
 
 # first substitute global variables
 with Path(snakemake.input.template).open() as f:
