@@ -50,36 +50,66 @@ for tier, simid, n_macros in simconfigs:
             simid=simid,
             setup=setup,
         threads: 1
+        message:
+            f"Generating macros for '{tier}.{simid}'"
         script:
             "scripts/generate_macros.py"
 
 
-rule:
+rule tier_ver:
     """Run a single simulation job for the 'ver' tier.
     Uses wildcards `simid` and `jobid`.
+
+    Warning
+    -------
+    The macro file is marked as "ancient" as a workaround to the fact that
+    it might have been re-generated (i.e. it effectively has a more recent
+    creation time) but with the same content as before (i.e. there is no need
+    to re-run the simulation). If the macro content is updated, users will need
+    to manually remove the output simulation files or force execution.
     """
+    message:
+        "Producing output file for job 'ver.{simid}.{jobid}'"
     input:
-        patterns.input_simjob_filename(setup, tier="ver"),
+        ancient(patterns.input_simjob_filename(setup, tier="ver")),
     output:
-        patterns.output_simjob_filename(setup, tier="ver"),
+        protected(patterns.output_simjob_filename(setup, tier="ver")),
     log:
         patterns.log_file_path(setup, "ver"),
+    benchmark:
+        patterns.benchmark_file_path(setup, "ver")
+    shadow:
+        "minimal"
     threads: 1
     shell:
         patterns.run_command(setup, "ver")
 
 
-rule:
+rule tier_raw:
     """Run a single simulation job for the 'raw' tier.
     Uses wildcards `simid` and `jobid`.
+
+    Warning
+    -------
+    The macro file is marked as "ancient" as a workaround to the fact that
+    it might have been re-generated (i.e. it effectively has a more recent
+    creation time) but with the same content as before (i.e. there is no need
+    to re-run the simulation). If the macro content is updated, users will need
+    to manually remove the output simulation files or force execution.
     """
+    message:
+        "Producing output file for job 'raw.{simid}.{jobid}'"
     input:
-        macro=patterns.input_simjob_filename(setup, tier="raw"),
+        macro=ancient(patterns.input_simjob_filename(setup, tier="raw")),
         verfile=lambda wildcards: patterns.smk_ver_filename_for_raw(setup, wildcards),
     output:
-        patterns.output_simjob_filename(setup, tier="raw"),
+        protected(patterns.output_simjob_filename(setup, tier="raw")),
     log:
         patterns.log_file_path(setup, "raw"),
+    benchmark:
+        patterns.benchmark_file_path(setup, "raw")
+    shadow:
+        "minimal"
     threads: 1
     shell:
         patterns.run_command(setup, "raw")

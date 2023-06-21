@@ -84,6 +84,15 @@ def log_file_path(setup, tier):
     )
 
 
+def benchmark_file_path(setup, tier):
+    """Formats a benchmark file path for a `simid` and `jobid`."""
+    return str(
+        Path(setup["paths"]["benchmarks"])
+        / f"{tier}"
+        / (simjob_rel_basename() + ".tsv")
+    )
+
+
 def run_command(setup, tier):
     """Returns command to build files in tier `tier` prefixed by environment."""
     return "{swenv} " + setup["runcmd"][tier]

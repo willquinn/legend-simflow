@@ -1,5 +1,9 @@
-# cores can be in principle 256, because of hyperthreading?
+# TODO: cores can be in principle 256, because of hyperthreading?
 cores: 128
+# NOTE: should actually set this through the command line, since there is a
+# scratch directory for each the user
+#   $ snakemake --shadow-prefix "$PSCRATCH" [...]
+shadow-prefix: "/pscratch/sd/p/pertoldi"
 
 # NERSC does not want us to profit from cluster execution
 # https://docs.nersc.gov/jobs/workflow/snakemake
