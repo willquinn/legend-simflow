@@ -15,18 +15,30 @@ setup["experiment"] = experiment
 swenv = utils.runcmd(setup["execenv"])
 
 
-rule all:
-    """Run the entire pdf production."""
-    input:
-        # list here all output pdf files by parsing filelist
-        aggregate.gen_list_of_all_simid_outputs(setup, tier="ver"),
-        aggregate.gen_list_of_all_simid_outputs(setup, tier="raw"),
-
-
 wildcard_constraints:
     tier="\w+",
     simid="[-\w]+",
     jobid="\w+",
+
+
+rule gen_all_macros:
+    """Aggregate and produce all the macro files."""
+    input:
+        aggregate.gen_list_of_all_macros(setup, tier="ver"),
+        aggregate.gen_list_of_all_macros(setup, tier="raw"),
+
+
+rule gen_all_tier_raw:
+    """Aggregate and produce all the 'raw' tier files."""
+    input:
+        aggregate.gen_list_of_all_simid_outputs(setup, tier="ver"),
+        aggregate.gen_list_of_all_simid_outputs(setup, tier="raw"),
+
+
+rule all:
+    """Run the entire pdf production."""
+    input:
+        rules.gen_all_tier_raw.input,
 
 
 # since the number of generated macros for the 'output' field
