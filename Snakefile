@@ -13,6 +13,7 @@ experiment = "l200a"
 setup = config["setups"][experiment]
 setup["experiment"] = experiment
 swenv = utils.runcmd(setup["execenv"])
+setup.setdefault("benchmark", False)
 
 
 wildcard_constraints:

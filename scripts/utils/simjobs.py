@@ -35,6 +35,10 @@ def output_simjob_filename(setup, tier, simid, idx):
 def get_simid_n_macros(setup, tier, simid):
     """Returns the number of macros that will be generated for a given `tier`
     and `simid`."""
+
+    if setup.get("benchmark", False):
+        return 1
+
     tdir = template_macro_dir(setup, tier)
 
     with (Path(tdir) / "simconfig.json").open() as f:
