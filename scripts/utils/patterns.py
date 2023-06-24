@@ -32,11 +32,19 @@ def template_macro_dir(setup, **kwargs):
     return Path(setup["paths"]["config"]) / "tier" / tier / setup["experiment"]
 
 
-def macro_gen_inputs(setup, **kwargs):
+def macro_gen_inputs(setup, tier, simid, **kwargs):
     """Return inputs for `generate_macros` Snakemake rule."""
+    tdir = template_macro_dir(setup, tier=tier)
+
+    with (tdir / "simconfig.json").open() as f:
+        config = json.load(f)[simid]
+
+    if "template" not in config:
+        raise RuntimeError("simconfig.json blocks must define a 'template' field.")
+
     expr = {
-        "template": str(template_macro_dir(setup) / "{simid}.template.mac"),
-        "cfgfile": str(template_macro_dir(setup) / "simconfig.json"),
+        "template": str(tdir / config["template"]),
+        "cfgfile": str(tdir / "simconfig.json"),
     }
     for k, v in expr.items():
         expr[k] = expand(v, **kwargs, allow_missing=True)[0]
@@ -102,7 +110,7 @@ def smk_ver_filename_for_raw(setup, wildcards):
     """Returns the vertices file needed for the 'raw' tier job, if needed."""
     tdir = template_macro_dir(setup, tier="raw")
 
-    with (Path(tdir) / "simconfig.json").open() as f:
+    with (tdir / "simconfig.json").open() as f:
         config = json.load(f)[wildcards.simid]
 
     if "vertices" in config:

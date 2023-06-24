@@ -37,9 +37,9 @@ substitutions = {"NUMBER_OF_PRIMARIES": int(n_prim / n_macros)}
 # the others as variables to be expanded in the template macro
 for k, v in config.items():
     if isinstance(v, str):
-        substitutions.update({k: v})
+        substitutions.update({k.upper(): v})
     elif isinstance(v, list) and all(isinstance(s, str) for s in v):
-        substitutions.update({k: "\n".join(v)})
+        substitutions.update({k.upper(): "\n".join(v)})
     else:
         print(f"WARNING: key '{k}' does not define a valid substitution rule")
 

@@ -50,11 +50,11 @@ for tier, simid, n_macros in simconfigs:
 
     rule:
         f"""Generates all needed simulation macros ({n_macros})
-        for {simid} in tier '{tier}'.
+        for {simid} in tier '{tier}'. No wildcards are used.
         """
         localrule: True
         input:
-            **patterns.macro_gen_inputs(setup, tier=tier, simid=simid),
+            **patterns.macro_gen_inputs(setup, tier, simid),
         output:
             patterns.input_simjob_filenames(setup, n_macros, tier=tier, simid=simid),
         params:
