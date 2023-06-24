@@ -33,12 +33,7 @@ rule gen_all_tier_raw:
     input:
         aggregate.gen_list_of_all_simid_outputs(setup, tier="ver"),
         aggregate.gen_list_of_all_simid_outputs(setup, tier="raw"),
-
-
-rule all:
-    """Run the entire pdf production."""
-    input:
-        rules.gen_all_tier_raw.input,
+    default_target: True
 
 
 # since the number of generated macros for the 'output' field
