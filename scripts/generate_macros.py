@@ -30,10 +30,12 @@ if "vertices" in config:
 if not n_macros:
     n_macros = config.pop("number_of_jobs")
 
-if snakemake.params.setup["benchmark"]:
-    n_macros = 1
-    # HACK: this is only a guess and can lead to failures
-    n_prim = 1000 if "vertices" in config else 5000
+if "benchmark" in snakemake.params.setup:
+    cfg = snakemake.params.setup["benchmark"]
+    if cfg.get("enabled", False):
+        n_macros = 1
+        # HACK: this is only a guess and can lead to failures
+        n_prim = cfg["n_primaries"] / 5 if "vertices" in config else cfg["n_primaries"]
 
 # prepare global substitution rules
 substitutions = {"NUMBER_OF_PRIMARIES": int(n_prim / n_macros)}

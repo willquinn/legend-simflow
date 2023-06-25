@@ -1,3 +1,6 @@
+# TODO: simid lists
+# TODO: snakemake wrapper scripts
+
 from pathlib import Path
 
 from scripts.utils import utils, simjobs, patterns, aggregate
@@ -13,7 +16,7 @@ experiment = "l200a"
 setup = config["setups"][experiment]
 setup["experiment"] = experiment
 swenv = utils.runcmd(setup["execenv"])
-setup.setdefault("benchmark", False)
+setup.setdefault("benchmark", {"enabled": False, "n_primaries": 5000})
 
 
 wildcard_constraints:
@@ -121,3 +124,16 @@ rule tier_raw:
     threads: 1
     shell:
         patterns.run_command(setup, "raw")
+
+
+rule print_stats:
+    """Prints a table with summary runtime information for each `simid`.
+    No wildcards are used.
+    """
+    input:
+        aggregate.gen_list_of_all_simid_outputs(setup, tier="ver"),
+        aggregate.gen_list_of_all_simid_outputs(setup, tier="raw"),
+    params:
+        setup=setup,
+    script:
+        "scripts/print_stats.py"

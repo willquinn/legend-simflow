@@ -36,8 +36,9 @@ def get_simid_n_macros(setup, tier, simid):
     """Returns the number of macros that will be generated for a given `tier`
     and `simid`."""
 
-    if setup.get("benchmark", False):
-        return 1
+    if "benchmark" in setup:
+        if setup["benchmark"].get("enabled", False):
+            return 1
 
     tdir = template_macro_dir(setup, tier)
 
