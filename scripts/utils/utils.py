@@ -3,10 +3,6 @@ import copy
 import string
 
 
-def runcmd(cfg):
-    return cfg["cmd"] + " " + cfg["arg"]
-
-
 def subst_vars_impl(x, var_values, ignore_missing=False):
     if isinstance(x, str):
         if "$" in x:

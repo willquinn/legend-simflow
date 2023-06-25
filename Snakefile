@@ -15,7 +15,7 @@ utils.subst_vars_in_snakemake_config(workflow, config)
 experiment = "l200a"
 setup = config["setups"][experiment]
 setup["experiment"] = experiment
-swenv = utils.runcmd(setup["execenv"])
+swenv = " ".join(setup["execenv"])
 setup.setdefault("benchmark", {"enabled": False, "n_primaries": 5000})
 
 
