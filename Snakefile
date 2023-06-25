@@ -135,5 +135,6 @@ rule print_stats:
         aggregate.gen_list_of_all_simid_outputs(setup, tier="raw"),
     params:
         setup=setup,
+    threads: 1
     script:
         "scripts/print_stats.py"
