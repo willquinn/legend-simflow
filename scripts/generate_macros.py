@@ -1,13 +1,13 @@
 # ruff: noqa: F821
+from __future__ import annotations
 
-import snakemake as smk
 import json
 from pathlib import Path
 
-from utils import utils, simjobs
+import snakemake as smk
+from utils import simjobs, utils
 
-
-with open(snakemake.input.cfgfile) as f:
+with Path(snakemake.input.cfgfile).open() as f:
     config = json.load(f)[snakemake.params.simid]
 
 n_prim = config.pop("number_of_primaries")

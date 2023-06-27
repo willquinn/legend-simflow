@@ -1,6 +1,9 @@
-import os
+from __future__ import annotations
+
 import copy
+import os
 import string
+from pathlib import Path
 
 
 def subst_vars_impl(x, var_values, ignore_missing=False):
@@ -32,7 +35,7 @@ def subst_vars_impl(x, var_values, ignore_missing=False):
 
 def subst_vars(props, var_values={}, use_env=False, ignore_missing=False):
     if use_env:
-        combined_var_values = {k: v for k, v in iter(os.environ.items())}
+        combined_var_values = dict(iter(os.environ.items()))
         combined_var_values.update(copy.copy(var_values))
     else:
         combined_var_values = var_values
@@ -45,7 +48,7 @@ def subst_vars_in_snakemake_config(workflow, config):
     config_filename = workflow.overwrite_configfiles[0]
     return subst_vars(
         config,
-        var_values={"_": os.path.dirname(config_filename)},
+        var_values={"_": str(Path(config_filename).parent)},
         use_env=True,
         ignore_missing=False,
     )

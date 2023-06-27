@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 
 from . import simjobs
@@ -7,7 +9,7 @@ def collect_simconfigs(setup, tiers):
     cfgs = []
     for tier in tiers:
         with (simjobs.template_macro_dir(setup, tier) / "simconfig.json").open() as f:
-            for sid, val in json.load(f).items():
+            for sid, _val in json.load(f).items():
                 cfgs.append((tier, sid, simjobs.get_simid_n_macros(setup, tier, sid)))
 
     return cfgs

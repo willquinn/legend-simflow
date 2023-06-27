@@ -82,7 +82,7 @@ rule tier_ver:
     message:
         "Producing output file for job 'ver.{simid}.{jobid}'"
     input:
-        ancient(patterns.input_simjob_filename(setup, tier="ver")),
+        macro=ancient(patterns.input_simjob_filename(setup, tier="ver")),
     output:
         protected(patterns.output_simjob_filename(setup, tier="ver")),
     log:

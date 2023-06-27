@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 from pathlib import Path
 
@@ -36,9 +38,8 @@ def get_simid_n_macros(setup, tier, simid):
     """Returns the number of macros that will be generated for a given `tier`
     and `simid`."""
 
-    if "benchmark" in setup:
-        if setup["benchmark"].get("enabled", False):
-            return 1
+    if "benchmark" in setup and setup["benchmark"].get("enabled", False):
+        return 1
 
     tdir = template_macro_dir(setup, tier)
 
@@ -50,9 +51,8 @@ def get_simid_n_macros(setup, tier, simid):
     elif "number_of_jobs" in config:
         return config["number_of_jobs"]
     else:
-        raise RuntimeError(
-            "simulation config must contain 'vertices' or 'number_of_jobs'"
-        )
+        msg = "simulation config must contain 'vertices' or 'number_of_jobs'"
+        raise RuntimeError(msg)
 
 
 def gen_list_of_simid_inputs(setup, tier, simid):

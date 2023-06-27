@@ -4,9 +4,11 @@ Keyword arguments are typically interpreted as variables to be substituted in
 the returned (structure of) strings. They are passed to
 :func:`snakemake.io.expand`.
 """
+from __future__ import annotations
 
 import json
 from pathlib import Path
+
 from snakemake.io import expand
 
 
@@ -40,7 +42,8 @@ def macro_gen_inputs(setup, tier, simid, **kwargs):
         config = json.load(f)[simid]
 
     if "template" not in config:
-        raise RuntimeError("simconfig.json blocks must define a 'template' field.")
+        msg = "simconfig.json blocks must define a 'template' field."
+        raise RuntimeError(msg)
 
     expr = {
         "template": str(tdir / config["template"]),
@@ -74,7 +77,8 @@ def input_simjob_filenames(setup, n_macros, **kwargs):
     tier = kwargs.get("tier", None)
 
     if tier is None:
-        raise RuntimeError("the 'tier' argument is mandatory")
+        msg = "the 'tier' argument is mandatory"
+        raise RuntimeError(msg)
 
     pat = str(
         Path(setup["paths"]["macros"])
