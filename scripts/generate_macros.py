@@ -1,5 +1,4 @@
-# ruff: noqa: F821
-from __future__ import annotations
+# ruff: noqa: F821, T201
 
 import json
 from pathlib import Path
@@ -34,8 +33,7 @@ if "benchmark" in snakemake.params.setup:
     cfg = snakemake.params.setup["benchmark"]
     if cfg.get("enabled", False):
         n_macros = 1
-        # HACK: this is only a guess and can lead to failures
-        n_prim = cfg["n_primaries"] / 5 if "vertices" in config else cfg["n_primaries"]
+        n_prim = cfg["n_primaries"][snakemake.params.tier]
 
 # prepare global substitution rules
 substitutions = {"NUMBER_OF_PRIMARIES": int(n_prim / n_macros)}

@@ -137,4 +137,4 @@ rule print_stats:
         setup=setup,
     threads: 1
     script:
-        "scripts/print_stats.py"
+        "scripts/print_simprod_stats.py"

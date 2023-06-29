@@ -33,7 +33,9 @@ def subst_vars_impl(x, var_values, ignore_missing=False):
         return x
 
 
-def subst_vars(props, var_values={}, use_env=False, ignore_missing=False):
+def subst_vars(props, var_values=None, use_env=False, ignore_missing=False):
+    if var_values is None:
+        var_values = {}
     if use_env:
         combined_var_values = dict(iter(os.environ.items()))
         combined_var_values.update(copy.copy(var_values))

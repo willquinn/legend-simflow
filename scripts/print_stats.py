@@ -1,5 +1,4 @@
-# ruff: noqa: F821
-from __future__ import annotations
+# ruff: noqa: F821, T201
 
 import csv
 from pathlib import Path
