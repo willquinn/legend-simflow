@@ -91,7 +91,6 @@ rule tier_ver:
         patterns.benchmark_file_path(setup, "ver")
     shadow:
         "minimal"
-    threads: 1
     shell:
         patterns.run_command(setup, "ver")
 
@@ -121,7 +120,6 @@ rule tier_raw:
         patterns.benchmark_file_path(setup, "raw")
     shadow:
         "minimal"
-    threads: 1
     shell:
         patterns.run_command(setup, "raw")
 
@@ -135,6 +133,5 @@ rule print_stats:
         aggregate.gen_list_of_all_simid_outputs(setup, tier="raw"),
     params:
         setup=setup,
-    threads: 1
     script:
         "scripts/print_simprod_stats.py"
