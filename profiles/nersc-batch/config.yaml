@@ -1,0 +1,60 @@
+configfile: config.json
+keep-going: true
+
+# profit from Perlmutter's scratch area: https://docs.nersc.gov/filesystems/perlmutter-scratch
+# NOTE: should actually set this through the command line, since there is a
+# scratch directory for each user:
+#   $ snakemake --shadow-prefix "$PSCRATCH" [...]
+shadow-prefix: "/pscratch/sd/p/pertoldi"
+
+# NERSC uses the SLURM job scheduler
+# - https://snakemake.readthedocs.io/en/stable/executing/cluster.html#executing-on-slurm-clusters
+slurm: true
+
+# maximum number of cores requested from the cluster or cloud scheduler
+cores: 256
+# maximum number of cores used locally, on the interactive node
+local-cores: 256
+# maximum number of jobs that can exist in the SLURM queue at a time
+jobs: unlimited
+
+# reasonable defaults that do not stress the scheduler
+max-jobs-per-second: 20
+max-status-checks-per-second: 20
+
+# (LEGEND) NERSC-specific settings
+# - https://snakemake.readthedocs.io/en/stable/executing/cluster.html#advanced-resource-specifications
+# - https://docs.nersc.gov/jobs
+default-resources:
+  - slurm_account="m2676"
+  - constraint="cpu"
+  - slurm_extra="--qos regular --licenses scratch,cfs" # --mail-type end,fail --mail-user luigi.pertoldi@tum.d
+
+# number of threads used by each rule
+set-threads:
+  - tier_ver=1
+  - tier_raw=1
+
+# memory and runtime requirements *for each individual job submissions*
+# - https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#resources
+# - https://docs.nersc.gov/jobs/#available-memory-for-applications-on-compute-nodes
+set-resources:
+  - tier_ver:
+    - mem=500GB
+    - runtime=1h
+  - tier_raw:
+    - mem=500GB
+    - runtime=1h
+
+# we define groups in order to let Snakemake group rule instances in the same
+# SLURM job. relevant docs:
+# - https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#snakefiles-grouping
+# - https://snakemake.readthedocs.io/en/stable/executing/grouping.html#job-grouping
+groups:
+  - tier_ver=sims
+  - tier_raw=sims
+
+# disconnected parts of the workflow can run in parallel (at most 256 of them)
+# in a group
+group-components:
+    - sims=256

@@ -1,0 +1,16 @@
+configfile: config.json
+keep-going: true
+
+# profit from Perlmutter's scratch area: https://docs.nersc.gov/filesystems/perlmutter-scratch
+# NOTE: should actually set this through the command line, since there is a
+# scratch directory for each user:
+#   $ snakemake --shadow-prefix "$PSCRATCH" [...]
+shadow-prefix: "/pscratch/sd/p/pertoldi"
+
+# maximum number of cores requested from the cluster or cloud scheduler
+cores: 128
+
+# number of threads used by each rule
+set-threads:
+  - tier_ver=1
+  - tier_raw=1
