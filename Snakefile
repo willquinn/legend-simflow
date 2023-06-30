@@ -16,7 +16,7 @@ experiment = "l200a"
 setup = config["setups"][experiment]
 setup["experiment"] = experiment
 swenv = " ".join(setup["execenv"])
-setup.setdefault("benchmark", {"enabled": False, "n_primaries": 5000})
+setup.setdefault("benchmark", {"enabled": False})
 
 
 wildcard_constraints:
@@ -135,3 +135,16 @@ rule print_stats:
         setup=setup,
     script:
         "scripts/print_simprod_stats.py"
+
+
+rule print_benchmark_stats:
+    """Prints a table with summary runtime information of a benchmarking run.
+    No wildcards are used.
+    """
+    input:
+        aggregate.gen_list_of_all_simid_outputs(setup, tier="ver"),
+        aggregate.gen_list_of_all_simid_outputs(setup, tier="raw"),
+    params:
+        setup=setup,
+    script:
+        "scripts/print_benchmark_stats.py"

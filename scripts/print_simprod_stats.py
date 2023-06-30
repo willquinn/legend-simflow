@@ -9,12 +9,12 @@ from utils import patterns, simjobs
 
 
 def printline(*line):
-    print("{:<50} {:>20} {:>10} {:>6}".format(*line))
+    print("{:<50} {:>20} {:>6} {:>14} {:>10}".format(*line))
 
 
-printline("     ", "wall time [s]", "         ", "    ")
-printline("simid", "(single core)", "primaries", "jobs")
-printline("-----", "-------------", "---------", "----")
+printline("     ", "wall time [s]", "    ", "wall time [s]", "         ")
+printline("simid", " (cumulative)", "jobs", "    (per job)", "primaries")
+printline("-----", "-------------", "----", "-------------", "---------")
 
 bdir = Path(snakemake.params.setup["paths"]["benchmarks"])
 
@@ -35,6 +35,7 @@ for simd in bdir.glob("*/*"):
     printline(
         simd.parent.name + "." + simd.name,
         str(timedelta(seconds=int(data["wall_time"]))),
+        njobs,
+        str(timedelta(seconds=int(data["wall_time"])) / njobs),
         "{:.2E}".format(nprim),
-        njobs
     )
