@@ -128,9 +128,6 @@ rule print_stats:
     """Prints a table with summary runtime information for each `simid`.
     No wildcards are used.
     """
-    input:
-        aggregate.gen_list_of_all_simid_outputs(setup, tier="ver"),
-        aggregate.gen_list_of_all_simid_outputs(setup, tier="raw"),
     params:
         setup=setup,
     script:
@@ -141,9 +138,6 @@ rule print_benchmark_stats:
     """Prints a table with summary runtime information of a benchmarking run.
     No wildcards are used.
     """
-    input:
-        aggregate.gen_list_of_all_simid_outputs(setup, tier="ver"),
-        aggregate.gen_list_of_all_simid_outputs(setup, tier="raw"),
     params:
         setup=setup,
     script:
