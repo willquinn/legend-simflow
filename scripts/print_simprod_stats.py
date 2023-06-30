@@ -1,9 +1,9 @@
-# ruff: noqa: F821
+# ruff: noqa: F821, T201
 
 import csv
 import json
-from pathlib import Path
 from datetime import timedelta
+from pathlib import Path
 
 from utils import patterns, simjobs
 
@@ -30,12 +30,14 @@ for simd in bdir.glob("*/*"):
         config = json.load(f)[simd.name]
 
     nprim = config["number_of_primaries"]
-    njobs = simjobs.get_simid_n_macros(snakemake.params.setup, simd.parent.name, simd.name)
+    njobs = simjobs.get_simid_n_macros(
+        snakemake.params.setup, simd.parent.name, simd.name
+    )
 
     printline(
         simd.parent.name + "." + simd.name,
         str(timedelta(seconds=int(data["wall_time"]))),
         njobs,
         str(timedelta(seconds=int(data["wall_time"])) / njobs),
-        "{:.2E}".format(nprim),
+        f"{nprim:.2E}",
     )

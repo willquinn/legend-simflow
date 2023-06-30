@@ -1,4 +1,4 @@
-# ruff: noqa: F821
+# ruff: noqa: F821, T201
 
 import csv
 from pathlib import Path
@@ -20,12 +20,15 @@ for simd in bdir.glob("*/*"):
             this_data = list(csv.DictReader(f, delimiter="\t"))[0]
             data["cpu_time"] += float(this_data["cpu_time"])
 
-    speed = data["cpu_time"] / snakemake.params.setup["benchmark"]["n_primaries"][simd.parent.name]
+    speed = (
+        data["cpu_time"]
+        / snakemake.params.setup["benchmark"]["n_primaries"][simd.parent.name]
+    )
     evts_1h = int(60 * 60 / speed) if speed > 0 else "inf"
-    njobs = int(1e8/evts_1h) if not isinstance(evts_1h, str) else 0
+    njobs = int(1e8 / evts_1h) if not isinstance(evts_1h, str) else 0
     printline(
         simd.parent.name + "." + simd.name,
         "({:}s) {:.2f}".format(int(data["cpu_time"]), 1000 * speed),
         evts_1h,
-        njobs
+        njobs,
     )
