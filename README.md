@@ -7,14 +7,96 @@
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/legend-exp/legend-simflow?logo=github)
 ![License](https://img.shields.io/github/license/legend-exp/legend-simflow)
 
-### Usage
+## Rationale
+
+The workflow metadata (e.g. rules for generating simulation macros,
+post-processing metadata) is stored in
+[legend-simflow-config](https://github.com/legend-exp/legend-simflow-config).
+
+The simulated data is organized in tiers:
+
+- `ver`: stands for "vertices"
+- `raw`: contains the output of the Geant4 simulations
+
+*To be documented...*
+
+## Setup
+
+[legend-prodenv](https://github.com/legend-exp/legend-prodenv) should be used
+to collect software dependencies, instantiate and manage multiple production
+environments. Snakemake can be installed by following instructions in
+[`legend-prodenv/README.md`](https://github.com/legend-exp/legend-prodenv).
+
+To instantiate a new production cycle:
 
 ```
-snakemake -j --configfile config.json
-snakemake -j --configfile config.json -- print_stats
+git clone git@github.com:legend-exp/legend-prodenv
+cd legend-prodenv && source setup.sh
+simprod-init-cycle <path-to-cycle-directory>
 ```
 
-### Useful Snakemake CLI options
+Before proceeding with the production, `<path-to-cycle-directory>/config.json`
+should be customized.
+
+### Running jobs in the LEGEND container with [container-env](https://github.com/oschulz/container-env)
+
+In `config.json`:
+```
+"execenv": [
+    "MESHFILESPATH=$_/inputs/simprod/MaGe/data/legendgeometry/stl_files",
+    "MAGERESULTS=$_/inputs/simprod/MaGe/data/legendgeometry",
+    "cenv", "legendsw"
+]
+```
+where the `legendsw` environment has been previously created with
+```
+cenv --create legendsw <path-to-container>
+```
+
+## Production
+
+Run a production by using one of the provided profiles (recommended):
+```
+snakemake --profile workflow/profiles/<profile-name>
+```
+Find some useful Snakemake command-line options at the bottom of this page.
+
+### Benchmarking runs
+
+This workflow implements the possibility to run special "benchmarking" runs in
+order to evaluate the speed of simulations, for tuning the number of events to
+simulate for each simulation run.
+
+*To be documented...*
+
+## NERSC-specific instructions
+
+### Setup
+
+As an alternative to installing Snakemake through legend-prodenv's tools,
+[NERSC's Mamba can be
+used](https://docs.nersc.gov/jobs/workflow/snakemake/#building-an-environment-containing-snakemake).
+
+To make proper use of LEGEND's shifter containers, special permissions must be
+set on the production cycle directory (see
+[docs](https://docs.nersc.gov/development/shifter/faq-troubleshooting/#invalid-volume-map)):
+```
+setfacl -R -m u:nobody:X <path-to-cycle-directory>
+```
+
+### Production
+
+Start the production on the interactive node:
+```
+snakemake --profile workflow/profiles/nersc-interactive
+```
+
+Start the production on the batch nodes:
+```
+snakemake --profile workflow/profiles/nersc-batch
+```
+
+## Useful Snakemake CLI options
 
 ```
 usage: snakemake [OPTIONS] -- [TARGET ...]
