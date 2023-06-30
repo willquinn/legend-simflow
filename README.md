@@ -61,6 +61,18 @@ snakemake --profile workflow/profiles/<profile-name>
 ```
 Find some useful Snakemake command-line options at the bottom of this page.
 
+> **Warning**
+>
+> Geant4 macro files are marked as
+> [`ancient`](https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#ignoring-timestamps)
+> as a workaround to the fact that they might have been re-generated (i.e. they have a more recent
+> creation time) but with the same content as before (i.e. there is no need
+> to re-run the simulations). Since Snakemake removes output files before re-generating,
+> there is no simple way to avoid overwriting files with unchanged content.
+> The workaround lets user increase simulation statistics by running new jobs (identical to
+> those already on disk). However, **If the macro content is updated in the metadata, users will need
+> to manually remove the output simulation files or force execution.**
+
 ### Benchmarking runs
 
 This workflow implements the possibility to run special "benchmarking" runs in
