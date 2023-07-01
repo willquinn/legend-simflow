@@ -1,11 +1,12 @@
 configfile: config.json
 keep-going: true
+quiet: rules
 
 # profit from Perlmutter's scratch area: https://docs.nersc.gov/filesystems/perlmutter-scratch
 # NOTE: should actually set this through the command line, since there is a
-# scratch directory for each user:
+# scratch directory for each user and variable expansion does not work here:
 #   $ snakemake --shadow-prefix "$PSCRATCH" [...]
-shadow-prefix: "/pscratch/sd/p/pertoldi"
+# shadow-prefix: "$PSCRATCH"
 
 # NERSC uses the SLURM job scheduler
 # - https://snakemake.readthedocs.io/en/stable/executing/cluster.html#executing-on-slurm-clusters
@@ -16,7 +17,7 @@ cores: 256
 # maximum number of cores used locally, on the interactive node
 local-cores: 256
 # maximum number of jobs that can exist in the SLURM queue at a time
-jobs: unlimited
+jobs: 50
 
 # reasonable defaults that do not stress the scheduler
 max-jobs-per-second: 20
@@ -28,6 +29,8 @@ max-status-checks-per-second: 20
 default-resources:
   - slurm_account="m2676"
   - constraint="cpu"
+  - runtime=120
+  - mem_mb=500
   - slurm_extra="--qos regular --licenses scratch,cfs" # --mail-type end,fail --mail-user luigi.pertoldi@tum.d
 
 # number of threads used by each rule
@@ -35,16 +38,14 @@ set-threads:
   - tier_ver=1
   - tier_raw=1
 
-# memory and runtime requirements *for each individual job submissions*
+# memory and runtime requirements for each single rule
 # - https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#resources
 # - https://docs.nersc.gov/jobs/#available-memory-for-applications-on-compute-nodes
 set-resources:
-  - tier_ver:
-    - mem=500GB
-    - runtime=1h
-  - tier_raw:
-    - mem=500GB
-    - runtime=1h
+  - tier_ver:mem_mb=500
+  - tier_ver:runtime=120
+  - tier_raw:mem_mb=500
+  - tier_raw:runtime=120
 
 # we define groups in order to let Snakemake group rule instances in the same
 # SLURM job. relevant docs:
