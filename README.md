@@ -103,7 +103,7 @@ As an alternative to installing Snakemake through legend-prodenv's tools,
 used](https://docs.nersc.gov/jobs/workflow/snakemake/#building-an-environment-containing-snakemake).
 
 > **Note**
-> 
+>
 > To make proper use of LEGEND's shifter containers, special permissions must be
 > set on the production cycle directory (see
 > [docs](https://docs.nersc.gov/development/shifter/faq-troubleshooting/#invalid-volume-map)):
