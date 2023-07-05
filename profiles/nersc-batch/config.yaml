@@ -31,7 +31,7 @@ default-resources:
   - slurm_account="m2676"
   - constraint="cpu"
   - runtime=120
-  - mem_mb=500
+  - mem_mb=1000
   - slurm_extra="--qos regular --licenses scratch,cfs" # --mail-type end,fail --mail-user luigi.pertoldi@tum.d
 
 # number of threads used by each rule
@@ -43,9 +43,9 @@ set-threads:
 # - https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#resources
 # - https://docs.nersc.gov/jobs/#available-memory-for-applications-on-compute-nodes
 set-resources:
-  - tier_ver:mem_mb=500
+  - tier_ver:mem_mb=1000
   - tier_ver:runtime=120
-  - tier_raw:mem_mb=500
+  - tier_raw:mem_mb=1000
   - tier_raw:runtime=120
 
 # we define groups in order to let Snakemake group rule instances in the same

@@ -21,7 +21,7 @@ set-threads:
 # - https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#resources
 # - https://docs.nersc.gov/jobs/#available-memory-for-applications-on-compute-nodes
 set-resources:
-  - tier_ver:mem_mb=500
+  - tier_ver:mem_mb=1000
   - tier_ver:runtime=120
-  - tier_raw:mem_mb=500
+  - tier_raw:mem_mb=1000
   - tier_raw:runtime=120
