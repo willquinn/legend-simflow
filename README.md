@@ -7,58 +7,71 @@
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/legend-exp/legend-simflow?logo=github)
 ![License](https://img.shields.io/github/license/legend-exp/legend-simflow)
 
-## Rationale
-
-The workflow metadata (e.g. rules for generating simulation macros,
-post-processing metadata) is stored in
+End-to-end Snakemake workflow to run Monte Carlo simulations of signal and background
+signatures in the LEGEND experiment and produce probability-density functions.
+Configuration metadata (e.g. rules for generating simulation macros or
+post-processing settings) is stored at
 [legend-simflow-config](https://github.com/legend-exp/legend-simflow-config).
 
-The simulated data is organized in tiers:
+## Workflow steps
 
-- `ver`: stands for "vertices"
-- `raw`: contains the output of the Geant4 simulations
-
-*To be documented...*
+1. Macro files are generated and writted to disk according to rules
+   defined in the metadata. These macros are in one-to-one correspondence
+   with simulation jobs in the next tiers
+1. Tier `ver` building: run simulations that generate Monte Carlo
+   event vertices needed to (some) simulations in the next tier
+1. Tier `raw` building: run full event simulations.
+1. *To be documented...*
 
 ## Setup
 
-[legend-prodenv](https://github.com/legend-exp/legend-prodenv) should be used
-to collect software dependencies, instantiate and manage multiple production
-environments. Snakemake can be installed by following instructions in
-[`legend-prodenv/README.md`](https://github.com/legend-exp/legend-prodenv).
+1. Set up [legend-prodenv](https://github.com/legend-exp/legend-prodenv)
+   to collect software dependencies, instantiate and manage multiple production
+   environments. Snakemake can be installed by following instructions in
+   [`legend-prodenv/README.md`](https://github.com/legend-exp/legend-prodenv/blob/main/README.md).
 
-To instantiate a new production cycle:
+1. Instantiate a new production cycle:
+   ```console
+   > git clone git@github.com:legend-exp/legend-prodenv
+   > cd legend-prodenv && source setup.sh
+   > simprod-init-cycle <path-to-cycle-directory>
+   ```
 
-```
-git clone git@github.com:legend-exp/legend-prodenv
-cd legend-prodenv && source setup.sh
-simprod-init-cycle <path-to-cycle-directory>
-```
+1. Customize `<path-to-cycle-directory>/config.json` (see next section).
 
-Before proceeding with the production, `<path-to-cycle-directory>/config.json`
-should be customized.
+## The configuration file
 
-### Running jobs in the LEGEND container with [container-env](https://github.com/oschulz/container-env)
+*To be documented...*
 
-In `config.json`:
-```
-"execenv": [
-    "MESHFILESPATH=$_/inputs/simprod/MaGe/data/legendgeometry/stl_files",
-    "MAGERESULTS=$_/inputs/simprod/MaGe/data/legendgeometry",
-    "cenv", "legendsw"
-]
-```
-where the `legendsw` environment has been previously created with
-```
-cenv --create legendsw <path-to-container>
-```
+- A dedicated configuration should be defined in `setups` for each different experiment.
+  The same name is used in the metadata. The experiment for which a production should be
+  run is defined in the `Snakefile`.
+- The `benchmark` section is used to configure a benchmarking run (see below)
+- The `runcmd` section defines for each tier the command to be executed in order to
+  produce output files. The `scripts/MaGe.sh` wrapper, which detects problems in the
+  simulation output and exits with a proper code, should be used (and kept up-to-date)
+  instead of the `MaGe` command. This allows Snakemake to better detect job failures.
+- the `execenv` section defines the software environment (container) where all jobs
+  should be executed (see below).
 
 ## Production
 
 Run a production by using one of the provided profiles (recommended):
+
+```console
+> cd <path-to-cycle-directory>
+> snakemake --profile workflow/profiles/<profile-name>
 ```
-snakemake --profile workflow/profiles/<profile-name>
+
+If no system-specific profiles are provided, the `default` profile should be used.
+
+On a system providing [Scratch space](https://en.wikipedia.org/wiki/Scratch_space),
+like NERSC, the `--shadow-prefix` option should be set to point to it:
+
+```console
+> snakemake --profile workflow/profiles/<profile-name> --shadow-prefix <path-to-scratch-area>
 ```
+
 Find some useful Snakemake command-line options at the bottom of this page.
 
 > **Warning**
@@ -89,23 +102,25 @@ As an alternative to installing Snakemake through legend-prodenv's tools,
 [NERSC's Mamba can be
 used](https://docs.nersc.gov/jobs/workflow/snakemake/#building-an-environment-containing-snakemake).
 
-To make proper use of LEGEND's shifter containers, special permissions must be
-set on the production cycle directory (see
-[docs](https://docs.nersc.gov/development/shifter/faq-troubleshooting/#invalid-volume-map)):
-```
-setfacl -R -m u:nobody:X <path-to-cycle-directory>
-```
+> **Note**
+>
+> To make proper use of LEGEND's shifter containers, special permissions must be
+> set on the production cycle directory (see
+> [docs](https://docs.nersc.gov/development/shifter/faq-troubleshooting/#invalid-volume-map)):
+> ```
+> setfacl -R -m u:nobody:X <path-to-cycle-directory>
+> ```
 
 ### Production
 
 Start the production on the interactive node:
 ```
-snakemake --profile workflow/profiles/nersc-interactive
+snakemake --profile workflow/profiles/nersc-interactive --shadow-prefix "$PSCRATCH"
 ```
 
-Start the production on the batch nodes:
+Start the production on the batch nodes (via SLURM):
 ```
-snakemake --profile workflow/profiles/nersc-batch
+snakemake --profile workflow/profiles/nersc-batch --shadow-prefix "$PSCRATCH"
 ```
 
 ## Useful Snakemake CLI options
@@ -138,4 +153,36 @@ usage: snakemake [OPTIONS] -- [TARGET ...]
   --quiet [{progress,rules,all} ...], -q [{progress,rules,all} ...]
                         Do not output certain information. If used without arguments, do not output any progress or
                         rule information. Defining 'all' results in no information being printed at all.
+```
+
+## Running jobs in the LEGEND software container
+
+### with [container-env](https://github.com/oschulz/container-env)
+
+In `config.json`:
+```json
+"execenv": [
+    "MESHFILESPATH=$_/inputs/simprod/MaGe/data/legendgeometry/stl_files",
+    "MAGERESULTS=$_/inputs/simprod/MaGe/data/legendgeometry",
+    "cenv", "legendsw"
+]
+```
+where the `legendsw` environment has been previously created with
+```
+cenv --create legendsw <path-to-container>
+```
+and the environment variables are needed for MaGe to work.
+
+### with NERSC Shifter
+
+In `config.json`:
+```json
+"execenv": [
+    "shifter",
+    "--image",
+    "legendexp/legend-software:latest",
+    "--volume $_/inputs/simprod/MaGe:/private",
+    "--env MESHFILESPATH=/private/data/legendgeometry/stl_files",
+    "--env MAGERESULTS=/private/data/legendgeometry"
+]
 ```
