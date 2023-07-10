@@ -35,6 +35,7 @@ rule gen_all_macros:
 rule gen_all_tier_raw:
     """Aggregate and produce all the 'raw' tier files."""
     input:
+        aggregate.gen_list_of_all_plt_outputs(setup, tier="raw"),
         aggregate.gen_list_of_all_simid_outputs(setup, tier="ver"),
         aggregate.gen_list_of_all_simid_outputs(setup, tier="raw"),
     default_target: True
@@ -86,9 +87,9 @@ rule tier_ver:
     output:
         protected(patterns.output_simjob_filename(setup, tier="ver")),
     log:
-        patterns.log_file_path(setup, "ver"),
+        patterns.log_file_path(setup, tier="ver"),
     benchmark:
-        patterns.benchmark_file_path(setup, "ver")
+        patterns.benchmark_file_path(setup, tier="ver")
     shadow:
         "minimal"
     shell:
@@ -115,13 +116,31 @@ rule tier_raw:
     output:
         protected(patterns.output_simjob_filename(setup, tier="raw")),
     log:
-        patterns.log_file_path(setup, "raw"),
+        patterns.log_file_path(setup, tier="raw"),
     benchmark:
-        patterns.benchmark_file_path(setup, "raw")
+        patterns.benchmark_file_path(setup, tier="raw")
     shadow:
         "minimal"
     shell:
         patterns.run_command(setup, "raw")
+
+
+for tier, simid, _ in simconfigs:
+
+    rule:
+        """Produces plots for the primary event vertices."""
+        input:
+            simjobs.gen_list_of_simid_outputs(setup, tier, simid, max_files=5),
+        output:
+            patterns.plt_file_path(setup, tier=tier, simid=simid)
+            + "/mage-event-vertices.png",
+        priority: 100
+        shell:
+            expand(
+                "{swenv} {basedir}/scripts/plot_mage_vertices.C -b -o {output} {input}",
+                basedir=workflow.basedir,
+                allow_missing=True,
+            )[0]
 
 
 rule print_stats:

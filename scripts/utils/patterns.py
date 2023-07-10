@@ -73,7 +73,7 @@ def output_simjob_filename(setup, tier, **kwargs):
 
 
 def input_simjob_filenames(setup, n_macros, **kwargs):
-    """Returns the full path to all input files for a `simid`."""
+    """Returns the full path to `n_macros` input files for a `simid`."""
     tier = kwargs.get("tier", None)
 
     if tier is None:
@@ -89,20 +89,40 @@ def input_simjob_filenames(setup, n_macros, **kwargs):
     return expand(pat, jobid=jobids, **kwargs, allow_missing=True)
 
 
-def log_file_path(setup, tier):
+def output_simjob_filenames(setup, n_macros, **kwargs):
+    """Returns the full path to `n_macros` output files for a `simid`."""
+    tier = kwargs.get("tier", None)
+
+    if tier is None:
+        msg = "the 'tier' argument is mandatory"
+        raise RuntimeError(msg)
+
+    pat = str(
+        Path(setup["paths"][f"tier_{tier}"])
+        / (simjob_rel_basename() + setup["filetypes"]["input"][tier])
+    )
+    jobids = expand("{id:>04d}", id=list(range(n_macros)))
+    return expand(pat, jobid=jobids, **kwargs, allow_missing=True)
+
+
+def log_file_path(setup, **kwargs):
     """Formats a log file path for a `simid` and `jobid`."""
-    return str(
-        Path(setup["paths"]["log"]) / f"{tier}" / (simjob_rel_basename() + ".log")
-    )
+    pat = str(Path(setup["paths"]["log"]) / "{tier}" / (simjob_rel_basename() + ".log"))
+    return expand(pat, **kwargs, allow_missing=True)[0]
 
 
-def benchmark_file_path(setup, tier):
+def benchmark_file_path(setup, **kwargs):
     """Formats a benchmark file path for a `simid` and `jobid`."""
-    return str(
-        Path(setup["paths"]["benchmarks"])
-        / f"{tier}"
-        / (simjob_rel_basename() + ".tsv")
+    pat = str(
+        Path(setup["paths"]["benchmarks"]) / "{tier}" / (simjob_rel_basename() + ".tsv")
     )
+    return expand(pat, **kwargs, allow_missing=True)[0]
+
+
+def plt_file_path(setup, **kwargs):
+    """Formats a benchmark file path for a `simid` and `jobid`."""
+    pat = str(Path(setup["paths"]["plt"]) / "{tier}" / "{simid}")
+    return expand(pat, **kwargs, allow_missing=True)[0]
 
 
 def run_command(setup, tier):

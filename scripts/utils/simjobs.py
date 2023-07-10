@@ -61,7 +61,9 @@ def gen_list_of_simid_inputs(setup, tier, simid):
     return [str(input_simjob_filename(setup, tier, simid, j)) for j in range(n_macros)]
 
 
-def gen_list_of_simid_outputs(setup, tier, simid):
+def gen_list_of_simid_outputs(setup, tier, simid, max_files=None):
     """Generates the full list of output files for a `simid`."""
     n_macros = get_simid_n_macros(setup, tier, simid)
+    if max_files is not None:
+        n_macros = min(n_macros, max_files)
     return [str(output_simjob_filename(setup, tier, simid, j)) for j in range(n_macros)]

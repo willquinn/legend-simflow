@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from . import simjobs
+from . import patterns, simjobs
 
 
 def collect_simconfigs(setup, tiers):
@@ -32,5 +32,16 @@ def gen_list_of_all_simid_outputs(setup, tier):
     mlist = []
     for sid in gen_list_of_all_simids(setup, tier):
         mlist += simjobs.gen_list_of_simid_outputs(setup, tier, sid)
+
+    return mlist
+
+
+def gen_list_of_all_plt_outputs(setup, tier):
+    mlist = []
+    for sid in gen_list_of_all_simids(setup, tier):
+        mlist += [
+            patterns.plt_file_path(setup, tier=tier, simid=sid)
+            + "/mage-event-vertices.png"
+        ]
 
     return mlist
