@@ -18,7 +18,7 @@ printline("-----", "-------------", "----", "-------------", "---------")
 
 bdir = Path(snakemake.params.setup["paths"]["benchmarks"])
 
-for simd in bdir.glob("*/*"):
+for simd in sorted(bdir.glob("*/*")):
     data = {"wall_time": 0}
     for jobd in simd.glob("*.tsv"):
         with jobd.open(newline="") as f:
