@@ -14,6 +14,7 @@
         "config": "$_/inputs/simprod/config",
         "tier_ver": "$_/generated/tier/ver",
         "tier_raw": "$_/generated/tier/raw",
+        "tier_hit": "$_/generated/tier/hit",
         "tier_evt": "$_/generated/tier/evt",
         "tier_pdf": "$_/generated/tier/pdf",
         "macros": "$_/generated/macros",
