@@ -137,7 +137,7 @@ for tier, simid, _ in simconfigs:
         priority: 100
         shell:
             expand(
-                "{swenv} {basedir}/scripts/plot_mage_vertices.C -b -o {output} {input}",
+                "{swenv} python {basedir}/scripts/plot_mage_vertices.py -b -o {output} {input}",
                 basedir=workflow.basedir,
                 allow_missing=True,
             )[0]
