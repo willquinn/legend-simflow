@@ -68,7 +68,7 @@ for tier, simid, n_macros in simconfigs:
             "scripts/generate_macros.py"
 
 
-rule tier_ver:
+rule build_tier_ver:
     """Run a single simulation job for the 'ver' tier.
     Uses wildcards `simid` and `jobid`.
 
@@ -96,7 +96,7 @@ rule tier_ver:
         patterns.run_command(setup, "ver")
 
 
-rule tier_raw:
+rule build_tier_raw:
     """Run a single simulation job for the 'raw' tier.
     Uses wildcards `simid` and `jobid`.
 
