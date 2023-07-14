@@ -11,12 +11,18 @@ parser = argparse.ArgumentParser(
     prog="plot_mage_vertices", description="plot MaGe primary event vertices"
 )
 parser.add_argument("--output", "-o", help="output file name")
+parser.add_argument(
+    "--batch", "-b", action="store_true", help="run in graphics batch mode"
+)
 parser.add_argument("input_files", nargs="+", help="MaGe output files")
 
 args = parser.parse_args()
 
 if not isinstance(args.input_files, list):
     args.input_files = [args.input_files]
+
+if args.batch:
+    ROOT.gROOT.SetBatch()
 
 # do not display any of the standard histogram decorations
 ROOT.gStyle.SetOptStat(False)
