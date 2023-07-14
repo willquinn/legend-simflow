@@ -13,6 +13,7 @@ grep -B 10 -P "^(Error|Fatal):\w+" "$logfile" && code=1
 grep -C 100 -iP "segmentation (fault|violation)" "$logfile" && code=1
 grep -m 1 "you will get the same vertex position from now on!" "$logfile" && code=1
 grep -A 15 -- "-------- EEEE ------- G4Exception-START -------- EEEE -------" "$logfile" && code=1
+grep -C 13 -i "track stuck or not moving" "$logfile" && code=1
 
 if [ "$code" != "0" ]; then
    echo -e "\n"
