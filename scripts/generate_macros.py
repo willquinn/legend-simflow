@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 import snakemake as smk
-from utils import simjobs, utils
+from utils import aggregate, patterns, utils
 
 with Path(snakemake.input.cfgfile).open() as f:
     config = json.load(f)[snakemake.params.simid]
@@ -16,7 +16,7 @@ outver_list = None
 # determine whether external vertices are required
 if "vertices" in config:
     # get list of ver output files
-    outver_list = simjobs.gen_list_of_simid_outputs(
+    outver_list = aggregate.gen_list_of_simid_outputs(
         snakemake.params.setup, "ver", config.pop("vertices")
     )
 
@@ -55,11 +55,11 @@ with Path(snakemake.input.template).open() as f:
 # then substitute macro-specific variables
 for i in range(n_macros):
     # determine output file name for this macro
-    outname = simjobs.output_simjob_filename(
+    outname = patterns.output_simjob_filename(
         snakemake.params.setup,
-        snakemake.params.tier,
-        snakemake.params.simid,
-        i,
+        tier=snakemake.params.tier,
+        simid=snakemake.params.simid,
+        jobid=f"{i:>04d}",
     )
 
     substitutions.update({"OUTPUT_FILE": outname})
@@ -68,8 +68,13 @@ for i in range(n_macros):
         substitutions.update({"VERTICES_FILE": outver_list[i]})
 
     # determine the macro file name for write out
-    inname = simjobs.input_simjob_filename(
-        snakemake.params.setup, snakemake.params.tier, snakemake.params.simid, i
+    inname = Path(
+        patterns.input_simjob_filename(
+            snakemake.params.setup,
+            tier=snakemake.params.tier,
+            simid=snakemake.params.simid,
+            jobid=f"{i:>04d}",
+        )
     )
 
     text_out = utils.subst_vars(text, substitutions).strip()
