@@ -1,10 +1,25 @@
+# Copyright (C) 2023 Luigi Pertoldi <gipert@pm.me>
+#
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program.  If not, see <https:#www.gnu.org/licenses/>.
+
 # ruff: noqa: F821, T201
 
 import json
 from pathlib import Path
 
 import snakemake as smk
-from utils import simjobs, utils
+from utils import aggregate, patterns, utils
 
 with Path(snakemake.input.cfgfile).open() as f:
     config = json.load(f)[snakemake.params.simid]
@@ -16,7 +31,7 @@ outver_list = None
 # determine whether external vertices are required
 if "vertices" in config:
     # get list of ver output files
-    outver_list = simjobs.gen_list_of_simid_outputs(
+    outver_list = aggregate.gen_list_of_simid_outputs(
         snakemake.params.setup, "ver", config.pop("vertices")
     )
 
@@ -55,11 +70,11 @@ with Path(snakemake.input.template).open() as f:
 # then substitute macro-specific variables
 for i in range(n_macros):
     # determine output file name for this macro
-    outname = simjobs.output_simjob_filename(
+    outname = patterns.output_simjob_filename(
         snakemake.params.setup,
-        snakemake.params.tier,
-        snakemake.params.simid,
-        i,
+        tier=snakemake.params.tier,
+        simid=snakemake.params.simid,
+        jobid=f"{i:>04d}",
     )
 
     substitutions.update({"OUTPUT_FILE": outname})
@@ -68,8 +83,13 @@ for i in range(n_macros):
         substitutions.update({"VERTICES_FILE": outver_list[i]})
 
     # determine the macro file name for write out
-    inname = simjobs.input_simjob_filename(
-        snakemake.params.setup, snakemake.params.tier, snakemake.params.simid, i
+    inname = Path(
+        patterns.input_simjob_filename(
+            snakemake.params.setup,
+            tier=snakemake.params.tier,
+            simid=snakemake.params.simid,
+            jobid=f"{i:>04d}",
+        )
     )
 
     text_out = utils.subst_vars(text, substitutions).strip()

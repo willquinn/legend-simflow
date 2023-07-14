@@ -1,9 +1,21 @@
-# TODO: simid lists
-# TODO: snakemake wrapper scripts
+# Copyright (C) 2023 Luigi Pertoldi <gipert@pm.me>
+#
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program.  If not, see <https:#www.gnu.org/licenses/>.
 
 from pathlib import Path
 
-from scripts.utils import utils, simjobs, patterns, aggregate
+from scripts.utils import utils, patterns, aggregate
 
 # NOTE: must set config file via --configfile
 
@@ -36,8 +48,13 @@ rule gen_all_tier_raw:
     """Aggregate and produce all the 'raw' tier files."""
     input:
         aggregate.gen_list_of_all_plt_outputs(setup, tier="raw"),
-        aggregate.gen_list_of_all_simid_outputs(setup, tier="ver"),
         aggregate.gen_list_of_all_simid_outputs(setup, tier="raw"),
+
+
+rule gen_all_tier_hit:
+    """Aggregate and produce all the 'hit' tier files."""
+    input:
+        aggregate.gen_list_of_all_hit_outputs(setup),
     default_target: True
 
 
@@ -68,7 +85,7 @@ for tier, simid, n_macros in simconfigs:
             "scripts/generate_macros.py"
 
 
-rule tier_ver:
+rule build_tier_ver:
     """Run a single simulation job for the 'ver' tier.
     Uses wildcards `simid` and `jobid`.
 
@@ -96,7 +113,7 @@ rule tier_ver:
         patterns.run_command(setup, "ver")
 
 
-rule tier_raw:
+rule build_tier_raw:
     """Run a single simulation job for the 'raw' tier.
     Uses wildcards `simid` and `jobid`.
 
@@ -130,17 +147,35 @@ for tier, simid, _ in simconfigs:
     rule:
         """Produces plots for the primary event vertices."""
         input:
-            simjobs.gen_list_of_simid_outputs(setup, tier, simid, max_files=5),
+            aggregate.gen_list_of_simid_outputs(setup, tier, simid, max_files=5),
         output:
             patterns.plt_file_path(setup, tier=tier, simid=simid)
             + "/mage-event-vertices.png",
         priority: 100
         shell:
             expand(
-                "{swenv} {basedir}/scripts/plot_mage_vertices.C -b -o {output} {input}",
+                "{swenv} python {basedir}/scripts/plot_mage_vertices.py -b -o {output} {input}",
                 basedir=workflow.basedir,
                 allow_missing=True,
             )[0]
+
+
+rule build_tier_hit:
+    """Produces a 'hit' tier file starting from a single 'raw' tier file."""
+    message:
+        "Producing output file for job 'hit.{simid}.{jobid}'"
+    input:
+        rules.build_tier_raw.output,
+    output:
+        patterns.output_hit_filename(setup),
+    log:
+        patterns.log_file_path(setup, tier="hit"),
+    benchmark:
+        patterns.benchmark_file_path(setup, tier="hit")
+    shadow:
+        "minimal"
+    shell:
+        patterns.run_command(setup, "hit")
 
 
 rule print_stats:
