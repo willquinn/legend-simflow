@@ -1,7 +1,6 @@
 configfile: config.json
 keep-going: true
 rerun-incomplete: true
-quiet: rules
 
 # profit from Perlmutter's scratch area: https://docs.nersc.gov/filesystems/perlmutter-scratch
 # NOTE: should actually set this through the command line, since there is a
