@@ -57,9 +57,9 @@ def benchmark_file_path(setup, **kwargs):
     return expand(pat, **kwargs, allow_missing=True)[0]
 
 
-def plt_file_path(setup, **kwargs):
+def plots_file_path(setup, **kwargs):
     """Formats a benchmark file path for a `simid` and `jobid`."""
-    pat = str(Path(setup["paths"]["plt"]) / "{tier}" / "{simid}")
+    pat = str(Path(setup["paths"]["plots"]) / "{tier}" / "{simid}")
     return expand(pat, **kwargs, allow_missing=True)[0]
 
 

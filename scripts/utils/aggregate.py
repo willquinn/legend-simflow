@@ -89,11 +89,11 @@ def gen_list_of_all_simid_outputs(setup, tier):
     return mlist
 
 
-def gen_list_of_all_plt_outputs(setup, tier):
+def gen_list_of_all_plots_outputs(setup, tier):
     mlist = []
     for sid in gen_list_of_all_simids(setup, tier):
         mlist += [
-            patterns.plt_file_path(setup, tier=tier, simid=sid)
+            patterns.plots_file_path(setup, tier=tier, simid=sid)
             + "/mage-event-vertices.png"
         ]
 

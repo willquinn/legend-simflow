@@ -45,7 +45,7 @@ rule gen_all_macros:
 rule gen_all_tier_raw:
     """Aggregate and produce all the 'raw' tier files."""
     input:
-        aggregate.gen_list_of_all_plt_outputs(setup, tier="raw"),
+        aggregate.gen_list_of_all_plots_outputs(setup, tier="raw"),
         aggregate.gen_list_of_all_simid_outputs(setup, tier="raw"),
 
 
@@ -147,7 +147,7 @@ for tier, simid, _ in simconfigs:
         input:
             aggregate.gen_list_of_simid_outputs(setup, tier, simid, max_files=5),
         output:
-            patterns.plt_file_path(setup, tier=tier, simid=simid)
+            patterns.plots_file_path(setup, tier=tier, simid=simid)
             + "/mage-event-vertices.png",
         params:
             script=workflow.source_path("scripts/plot_mage_vertices.py"),
