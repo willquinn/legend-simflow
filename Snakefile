@@ -17,16 +17,13 @@ from pathlib import Path
 
 from scripts.utils import utils, patterns, aggregate
 
-# NOTE: must set config file via --configfile
-
 if not config:
     raise RuntimeError("you must set a config file with --configfile")
 
 utils.subst_vars_in_snakemake_config(workflow, config)
 
-setup = config
-swenv = " ".join(setup["execenv"])
-setup.setdefault("benchmark", {"enabled": False})
+swenv = " ".join(config["execenv"])
+config.setdefault("benchmark", {"enabled": False})
 
 
 wildcard_constraints:
@@ -38,28 +35,28 @@ wildcard_constraints:
 rule gen_all_macros:
     """Aggregate and produce all the macro files."""
     input:
-        aggregate.gen_list_of_all_macros(setup, tier="ver"),
-        aggregate.gen_list_of_all_macros(setup, tier="raw"),
+        aggregate.gen_list_of_all_macros(config, tier="ver"),
+        aggregate.gen_list_of_all_macros(config, tier="raw"),
 
 
 rule gen_all_tier_raw:
     """Aggregate and produce all the 'raw' tier files."""
     input:
-        aggregate.gen_list_of_all_plots_outputs(setup, tier="raw"),
-        aggregate.gen_list_of_all_simid_outputs(setup, tier="raw"),
+        aggregate.gen_list_of_all_plots_outputs(config, tier="raw"),
+        aggregate.gen_list_of_all_simid_outputs(config, tier="raw"),
 
 
 rule gen_all_tier_hit:
     """Aggregate and produce all the 'hit' tier files."""
     input:
-        aggregate.gen_list_of_all_hit_outputs(setup),
+        aggregate.gen_list_of_all_hit_outputs(config),
     default_target: True
 
 
 # since the number of generated macros for the 'output' field
 # must be deduced at runtime from the JSON configuration, we need here to
 # generate a separate rule for each 'simid'
-simconfigs = aggregate.collect_simconfigs(setup, ["ver", "raw"])
+simconfigs = aggregate.collect_simconfigs(config, ["ver", "raw"])
 
 for tier, simid, n_macros in simconfigs:
 
@@ -69,13 +66,12 @@ for tier, simid, n_macros in simconfigs:
         """
         localrule: True
         input:
-            **patterns.macro_gen_inputs(setup, tier, simid),
+            **patterns.macro_gen_inputs(config, tier, simid),
         output:
-            patterns.input_simjob_filenames(setup, n_macros, tier=tier, simid=simid),
+            patterns.input_simjob_filenames(config, n_macros, tier=tier, simid=simid),
         params:
             tier=tier,
             simid=simid,
-            setup=setup,
         threads: 1
         message:
             f"Generating macros for '{tier}.{simid}'"
@@ -98,17 +94,17 @@ rule build_tier_ver:
     message:
         "Producing output file for job 'ver.{simid}.{jobid}'"
     input:
-        macro=ancient(patterns.input_simjob_filename(setup, tier="ver")),
+        macro=ancient(patterns.input_simjob_filename(config, tier="ver")),
     output:
-        protected(patterns.output_simjob_filename(setup, tier="ver")),
+        protected(patterns.output_simjob_filename(config, tier="ver")),
     log:
-        patterns.log_file_path(setup, tier="ver"),
+        patterns.log_file_path(config, tier="ver"),
     benchmark:
-        patterns.benchmark_file_path(setup, tier="ver")
+        patterns.benchmark_file_path(config, tier="ver")
     shadow:
         "minimal"
     shell:
-        patterns.run_command(setup, "ver")
+        patterns.run_command(config, "ver")
 
 
 rule build_tier_raw:
@@ -126,18 +122,18 @@ rule build_tier_raw:
     message:
         "Producing output file for job 'raw.{simid}.{jobid}'"
     input:
-        macro=ancient(patterns.input_simjob_filename(setup, tier="raw")),
-        verfile=lambda wildcards: patterns.smk_ver_filename_for_raw(setup, wildcards),
+        macro=ancient(patterns.input_simjob_filename(config, tier="raw")),
+        verfile=lambda wildcards: patterns.smk_ver_filename_for_raw(config, wildcards),
     output:
-        protected(patterns.output_simjob_filename(setup, tier="raw")),
+        protected(patterns.output_simjob_filename(config, tier="raw")),
     log:
-        patterns.log_file_path(setup, tier="raw"),
+        patterns.log_file_path(config, tier="raw"),
     benchmark:
-        patterns.benchmark_file_path(setup, tier="raw")
+        patterns.benchmark_file_path(config, tier="raw")
     shadow:
         "minimal"
     shell:
-        patterns.run_command(setup, "raw")
+        patterns.run_command(config, "raw")
 
 
 for tier, simid, _ in simconfigs:
@@ -145,9 +141,9 @@ for tier, simid, _ in simconfigs:
     rule:
         """Produces plots for the primary event vertices."""
         input:
-            aggregate.gen_list_of_simid_outputs(setup, tier, simid, max_files=5),
+            aggregate.gen_list_of_simid_outputs(config, tier, simid, max_files=5),
         output:
-            patterns.plots_file_path(setup, tier=tier, simid=simid)
+            patterns.plots_file_path(config, tier=tier, simid=simid)
             + "/mage-event-vertices.png",
         params:
             script=workflow.source_path("scripts/plot_mage_vertices.py"),
@@ -166,23 +162,21 @@ rule build_tier_hit:
     input:
         rules.build_tier_raw.output,
     output:
-        patterns.output_hit_filename(setup),
+        patterns.output_hit_filename(config),
     log:
-        patterns.log_file_path(setup, tier="hit"),
+        patterns.log_file_path(config, tier="hit"),
     benchmark:
-        patterns.benchmark_file_path(setup, tier="hit")
+        patterns.benchmark_file_path(config, tier="hit")
     shadow:
         "minimal"
     shell:
-        patterns.run_command(setup, "hit")
+        patterns.run_command(config, "hit")
 
 
 rule print_stats:
     """Prints a table with summary runtime information for each `simid`.
     No wildcards are used.
     """
-    params:
-        setup=setup,
     script:
         "scripts/print_simprod_stats.py"
 
@@ -191,7 +185,5 @@ rule print_benchmark_stats:
     """Prints a table with summary runtime information of a benchmarking run.
     No wildcards are used.
     """
-    params:
-        setup=setup,
     script:
         "scripts/print_benchmark_stats.py"

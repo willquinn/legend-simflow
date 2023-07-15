@@ -20,7 +20,7 @@ import json
 from datetime import timedelta
 from pathlib import Path
 
-from utils import patterns, simjobs
+from utils import aggregate, patterns
 
 
 def printline(*line):
@@ -31,7 +31,7 @@ printline("     ", "wall time [s]", "    ", "wall time [s]", "         ")
 printline("simid", " (cumulative)", "jobs", "    (per job)", "primaries")
 printline("-----", "-------------", "----", "-------------", "---------")
 
-bdir = Path(snakemake.params.setup["paths"]["benchmarks"])
+bdir = Path(snakemake.config["paths"]["benchmarks"])
 
 for simd in sorted(bdir.glob("*/*")):
     data = {"wall_time": 0}
@@ -40,14 +40,14 @@ for simd in sorted(bdir.glob("*/*")):
             this_data = list(csv.DictReader(f, delimiter="\t"))[0]
             data["wall_time"] += float(this_data["s"])
 
-    tdir = patterns.template_macro_dir(snakemake.params.setup, tier=simd.parent.name)
+    tier = simd.parent.name if simd.parent.name in ("ver", "raw") else "raw"
+
+    tdir = patterns.template_macro_dir(snakemake.config, tier=tier)
     with (tdir / "simconfig.json").open() as f:
         config = json.load(f)[simd.name]
 
     nprim = config["number_of_primaries"]
-    njobs = simjobs.get_simid_n_macros(
-        snakemake.params.setup, simd.parent.name, simd.name
-    )
+    njobs = aggregate.get_simid_n_macros(snakemake.config, tier, simd.name)
 
     printline(
         simd.parent.name + "." + simd.name,

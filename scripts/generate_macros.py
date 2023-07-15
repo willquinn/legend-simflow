@@ -32,7 +32,7 @@ outver_list = None
 if "vertices" in config:
     # get list of ver output files
     outver_list = aggregate.gen_list_of_simid_outputs(
-        snakemake.params.setup, "ver", config.pop("vertices")
+        snakemake.config, "ver", config.pop("vertices")
     )
 
     # if number of jobs is not specified, use number of vertices files
@@ -44,8 +44,8 @@ if "vertices" in config:
 if not n_macros:
     n_macros = config.pop("number_of_jobs")
 
-if "benchmark" in snakemake.params.setup:
-    cfg = snakemake.params.setup["benchmark"]
+if "benchmark" in snakemake.config:
+    cfg = snakemake.config["benchmark"]
     if cfg.get("enabled", False):
         n_macros = 1
         n_prim = cfg["n_primaries"][snakemake.params.tier]
@@ -71,7 +71,7 @@ with Path(snakemake.input.template).open() as f:
 for i in range(n_macros):
     # determine output file name for this macro
     outname = patterns.output_simjob_filename(
-        snakemake.params.setup,
+        snakemake.config,
         tier=snakemake.params.tier,
         simid=snakemake.params.simid,
         jobid=f"{i:>04d}",
@@ -85,7 +85,7 @@ for i in range(n_macros):
     # determine the macro file name for write out
     inname = Path(
         patterns.input_simjob_filename(
-            snakemake.params.setup,
+            snakemake.config,
             tier=snakemake.params.tier,
             simid=snakemake.params.simid,
             jobid=f"{i:>04d}",
