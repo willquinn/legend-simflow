@@ -24,9 +24,7 @@ if not config:
 
 utils.subst_vars_in_snakemake_config(workflow, config)
 
-experiment = "l200a"
-setup = config["setups"][experiment]
-setup["experiment"] = experiment
+setup = config
 swenv = " ".join(setup["execenv"])
 setup.setdefault("benchmark", {"enabled": False})
 
@@ -151,11 +149,12 @@ for tier, simid, _ in simconfigs:
         output:
             patterns.plt_file_path(setup, tier=tier, simid=simid)
             + "/mage-event-vertices.png",
+        params:
+            script=workflow.source_path("scripts/plot_mage_vertices.py"),
         priority: 100
         shell:
             expand(
-                "{swenv} python {basedir}/scripts/plot_mage_vertices.py -b -o {output} {input}",
-                basedir=workflow.basedir,
+                "{swenv} python {script} -b -o {output} {input}",
                 allow_missing=True,
             )[0]
 
