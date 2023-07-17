@@ -4,6 +4,8 @@ rerun-incomplete: true
 
 cores: all
 
+shadow-prefix: /tmp
+
 # number of threads used by each rule
 set-threads:
   - build_tier_ver=1

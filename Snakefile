@@ -181,7 +181,7 @@ rule build_tier_hit:
     benchmark:
         patterns.benchmark_file_path(config, tier="hit")
     shadow:
-        "minimal"
+        "copy-minimal"  # want the raw files to be in the shadow area
     shell:
         patterns.run_command(config, "hit")
 
