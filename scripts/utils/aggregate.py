@@ -57,7 +57,7 @@ def collect_simconfigs(setup, tiers):
 def gen_list_of_simid_inputs(setup, tier, simid):
     """Generates the full list of input files for a `tier` and `simid`."""
     n_macros = get_simid_n_macros(setup, tier, simid)
-    return patterns.input_simjob_filenames(setup, n_macros, tier=tier, simid=simid)
+    return patterns.input_simid_filenames(setup, n_macros, tier=tier, simid=simid)
 
 
 def gen_list_of_simid_outputs(setup, tier, simid, max_files=None):
@@ -68,7 +68,7 @@ def gen_list_of_simid_outputs(setup, tier, simid, max_files=None):
     n_macros = get_simid_n_macros(setup, tier, simid)
     if max_files is not None:
         n_macros = min(n_macros, max_files)
-    return patterns.output_simjob_filenames(setup, n_macros, tier=tier, simid=simid)
+    return patterns.output_simid_filenames(setup, n_macros, tier=tier, simid=simid)
 
 
 def gen_list_of_all_simids(setup, tier):

@@ -137,7 +137,7 @@ def output_simjob_filename(setup, **kwargs):
     return expand(expr, **kwargs, allow_missing=True)[0]
 
 
-def input_simjob_filenames(setup, n_macros, **kwargs):
+def input_simid_filenames(setup, n_macros, **kwargs):
     """Returns the full path to `n_macros` input files for a `simid`. Needed by
     script that generates all macros for a `simid`.
     """
@@ -146,7 +146,7 @@ def input_simjob_filenames(setup, n_macros, **kwargs):
     return expand(pat, jobid=jobids, **kwargs, allow_missing=True)
 
 
-def output_simjob_filenames(setup, n_macros, **kwargs):
+def output_simid_filenames(setup, n_macros, **kwargs):
     """Returns the full path to `n_macros` output files for a `simid`."""
     pat = output_simjob_filename(setup, **kwargs)
     jobids = expand("{id:>04d}", id=list(range(n_macros)))

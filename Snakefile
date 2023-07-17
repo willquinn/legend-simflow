@@ -68,7 +68,7 @@ for tier, simid, n_macros in simconfigs:
         input:
             **patterns.macro_gen_inputs(config, tier, simid),
         output:
-            patterns.input_simjob_filenames(config, n_macros, tier=tier, simid=simid),
+            patterns.input_simid_filenames(config, n_macros, tier=tier, simid=simid),
         params:
             tier=tier,
             simid=simid,
