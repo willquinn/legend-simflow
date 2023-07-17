@@ -5,7 +5,7 @@ rerun-incomplete: true
 # profit from Perlmutter's scratch area: https://docs.nersc.gov/filesystems/perlmutter-scratch
 # see: https://snakemake.readthedocs.io/en/stable/project_info/faq.html#how-can-i-make-use-of-node-local-storage-when-running-cluster-jobs
 # NOTE: should actually set this through the command line, since there is a
-# scratch directory for each user:
+# scratch directory for each user and variable expansion does not work here:
 #   $ snakemake --shadow-prefix "$PSCRATCH" [...]
 # NOTE: this only works if paths to input/output files are NOT absolute! you
 # must not use the $_ special variable in config.json in front of paths that
@@ -13,7 +13,7 @@ rerun-incomplete: true
 # shadow-prefix: "$PSCRATCH"
 
 # maximum number of cores requested from the cluster or cloud scheduler
-cores: 128
+cores: all
 
 # number of threads used by each rule
 set-threads:

@@ -17,11 +17,17 @@ rerun-incomplete: true
 slurm: true
 
 # maximum number of cores requested from the cluster or cloud scheduler
-cores: 256
+cores: all
 # maximum number of cores used locally, on the interactive node
-local-cores: 256
+local-cores: 100
 # maximum number of jobs that can exist in the SLURM queue at a time
-jobs: 50
+jobs: 100
+
+# set resource limits to single job. at NERSC, the total wall time must be less
+# than 12h and a node offers max 512GB memory
+resources:
+  - runtime=720
+  - mem_mb=512000
 
 # reasonable defaults that do not stress the scheduler
 max-jobs-per-second: 20
