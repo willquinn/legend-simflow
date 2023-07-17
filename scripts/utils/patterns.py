@@ -165,22 +165,3 @@ def smk_ver_filename_for_raw(setup, wildcards):
         return output_simjob_filename(setup, tier="ver", simid=config["vertices"])
     else:
         return []
-
-
-# hit tier
-
-
-def output_hit_filename(setup, **kwargs):
-    """Returns the full path to the output file for a `simid`, 'hit' tier and job index."""
-    expr = str(
-        Path(setup["paths"]["tier_hit"])
-        / (simjob_rel_basename() + setup["filetypes"]["output"]["hit"])
-    )
-    return expand(expr, **kwargs, allow_missing=True)[0]
-
-
-def output_hit_filenames(setup, n_macros, **kwargs):
-    """Returns the full path to `n_macros` output files for a `simid`, 'hit' tier."""
-    pat = output_hit_filename(setup, **kwargs)
-    jobids = expand("{id:>04d}", id=list(range(n_macros)))
-    return expand(pat, jobid=jobids, **kwargs, allow_missing=True)

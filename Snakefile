@@ -49,7 +49,7 @@ rule gen_all_tier_raw:
 rule gen_all_tier_hit:
     """Aggregate and produce all the 'hit' tier files."""
     input:
-        aggregate.gen_list_of_all_hit_outputs(config),
+        aggregate.gen_list_of_all_simid_outputs(config, tier="hit"),
     default_target: True
 
 
@@ -162,7 +162,7 @@ rule build_tier_hit:
     input:
         rules.build_tier_raw.output,
     output:
-        patterns.output_hit_filename(config),
+        patterns.output_simjob_filename(config, tier="hit"),
     log:
         patterns.log_file_path(config, tier="hit"),
     benchmark:

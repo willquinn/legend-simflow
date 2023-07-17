@@ -62,6 +62,9 @@ def gen_list_of_simid_inputs(setup, tier, simid):
 
 def gen_list_of_simid_outputs(setup, tier, simid, max_files=None):
     """Generates the full list of output files for a `simid`."""
+    if tier not in ("ver", "raw"):
+        tier = "raw"
+
     n_macros = get_simid_n_macros(setup, tier, simid)
     if max_files is not None:
         n_macros = min(n_macros, max_files)
@@ -82,6 +85,9 @@ def gen_list_of_all_macros(setup, tier):
 
 
 def gen_list_of_all_simid_outputs(setup, tier):
+    if tier not in ("ver", "raw"):
+        tier = "raw"
+
     mlist = []
     for sid in gen_list_of_all_simids(setup, tier):
         mlist += gen_list_of_simid_outputs(setup, tier=tier, simid=sid)
@@ -96,21 +102,5 @@ def gen_list_of_all_plots_outputs(setup, tier):
             patterns.plots_file_path(setup, tier=tier, simid=sid)
             + "/mage-event-vertices.png"
         ]
-
-    return mlist
-
-
-def gen_list_of_hit_outputs(setup, simid, max_files=None):
-    """Generates the full list of output files for a `simid`, 'hit' tier."""
-    n_macros = get_simid_n_macros(setup, "raw", simid)
-    if max_files is not None:
-        n_macros = min(n_macros, max_files)
-    return patterns.output_hit_filenames(setup, n_macros, simid=simid)
-
-
-def gen_list_of_all_hit_outputs(setup):
-    mlist = []
-    for sid in gen_list_of_all_simids(setup, "raw"):
-        mlist += gen_list_of_hit_outputs(setup, simid=sid)
 
     return mlist
