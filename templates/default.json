@@ -17,7 +17,7 @@
     "tier_evt": "$_/generated/tier/evt",
     "tier_pdf": "$_/generated/tier/pdf",
     "macros": "$_/generated/macros",
-    "plt": "$_/generated/plt",
+    "plots": "$_/generated/plots",
     "log": "$_/generated/log",
     "benchmarks": "$_/generated/benchmarks",
     "src": "$_/software/python/src",
