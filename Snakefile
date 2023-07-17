@@ -159,11 +159,13 @@ for tier, simid, _ in simconfigs:
         output:
             patterns.plots_file_path(config, tier=tier, simid=simid)
             + "/mage-event-vertices.png",
-        params:
-            prog=workflow.source_path("scripts/plot_mage_vertices.py"),
         priority: 100
         shell:
-            "{swenv} python {params.prog} -b -o {output} {input}"
+            (
+                "{swenv} python "
+                + workflow.source_path("scripts/plot_mage_vertices.py")
+                + " -b -o {output} {input}"
+            )
 
 
 rule build_tier_hit:
