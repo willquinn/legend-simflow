@@ -16,6 +16,7 @@
 # ruff: noqa: F821, T201
 
 import json
+import re
 from pathlib import Path
 
 import snakemake as smk
@@ -66,6 +67,16 @@ for k, v in config.items():
 # first substitute global variables
 with Path(snakemake.input.template).open() as f:
     text = utils.subst_vars(f.read().strip(), substitutions, ignore_missing=True)
+
+    # if benchmark run, write all events to disk, not only those that deposit
+    # energy in the detectors. TODO: hardcoding application-specific commands
+    # is not nice here
+    if "benchmark" in snakemake.config:
+        text = re.sub(
+            r"\n */MG/io/MCRun/setWriteEventsThatDepositEnergyInGe +true *\n",
+            "\n",
+            text,
+        )
 
 # then substitute macro-specific variables
 for i in range(n_macros):
