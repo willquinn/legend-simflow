@@ -109,7 +109,10 @@ def process_simlist_or_all(setup, simlist=None):
         simlist = setup.get("simlist", None)
 
     if simlist is None or simlist == "all":
-        return gen_list_of_all_simid_outputs(setup, tier="hit")
+        return (
+            gen_list_of_all_simid_outputs(setup, tier="hit") +
+            gen_list_of_all_plots_outputs(setup, tier="raw")
+        )
 
     mlist = []
     with Path(simlist).open() as f:
