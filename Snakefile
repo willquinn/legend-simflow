@@ -32,9 +32,19 @@ wildcard_constraints:
     jobid="\w+",
 
 
+def gen_target_all():
+    if config.get("simlist", "all") == "all":
+        return (
+            aggregate.gen_list_of_all_simid_outputs(config, tier="hit"),
+            aggregate.gen_list_of_all_plots_outputs(config, tier="raw"),
+        )
+    else:
+        return aggregate.process_simlist_or_all(config)
+
+
 rule all:
     input:
-        aggregate.process_simlist_or_all(config),
+        gen_target_all(),
 
 
 rule gen_all_macros:
