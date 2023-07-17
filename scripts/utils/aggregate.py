@@ -24,6 +24,8 @@ from . import patterns
 def get_simid_n_macros(setup, tier, simid):
     """Returns the number of macros that will be generated for a given `tier`
     and `simid`."""
+    if tier not in ("ver", "raw"):
+        tier = "raw"
 
     if "benchmark" in setup and setup["benchmark"].get("enabled", False):
         return 1
@@ -62,9 +64,6 @@ def gen_list_of_simid_inputs(setup, tier, simid):
 
 def gen_list_of_simid_outputs(setup, tier, simid, max_files=None):
     """Generates the full list of output files for a `simid`."""
-    if tier not in ("ver", "raw"):
-        tier = "raw"
-
     n_macros = get_simid_n_macros(setup, tier, simid)
     if max_files is not None:
         n_macros = min(n_macros, max_files)
@@ -72,6 +71,8 @@ def gen_list_of_simid_outputs(setup, tier, simid, max_files=None):
 
 
 def gen_list_of_all_simids(setup, tier):
+    if tier not in ("ver", "raw"):
+        tier = "raw"
     with (patterns.template_macro_dir(setup, tier=tier) / "simconfig.json").open() as f:
         return json.load(f).keys()
 
@@ -85,9 +86,6 @@ def gen_list_of_all_macros(setup, tier):
 
 
 def gen_list_of_all_simid_outputs(setup, tier):
-    if tier not in ("ver", "raw"):
-        tier = "raw"
-
     mlist = []
     for sid in gen_list_of_all_simids(setup, tier):
         mlist += gen_list_of_simid_outputs(setup, tier=tier, simid=sid)
@@ -102,5 +100,22 @@ def gen_list_of_all_plots_outputs(setup, tier):
             patterns.plots_file_path(setup, tier=tier, simid=sid)
             + "/mage-event-vertices.png"
         ]
+
+    return mlist
+
+
+def process_simlist_or_all(setup, simlist=None):
+    if simlist is None:
+        simlist = setup.get("simlist", None)
+
+    if simlist is None or simlist == "all":
+        return gen_list_of_simid_outputs(setup, tier="hit")
+
+    mlist = []
+    with Path(simlist).open() as f:
+        for line in f:
+            mlist += gen_list_of_simid_outputs(
+                setup, tier=line.split(".")[0], simid=line.split(".")[1].rstrip()
+            )
 
     return mlist

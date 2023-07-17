@@ -32,6 +32,11 @@ wildcard_constraints:
     jobid="\w+",
 
 
+rule all:
+    input:
+        aggregate.process_simlist_or_all(config),
+
+
 rule gen_all_macros:
     """Aggregate and produce all the macro files."""
     input:
@@ -50,7 +55,6 @@ rule gen_all_tier_hit:
     """Aggregate and produce all the 'hit' tier files."""
     input:
         aggregate.gen_list_of_all_simid_outputs(config, tier="hit"),
-    default_target: True
 
 
 # since the number of generated macros for the 'output' field
