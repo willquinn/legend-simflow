@@ -200,3 +200,11 @@ rule print_benchmark_stats:
     """
     script:
         "scripts/print_benchmark_stats.py"
+
+
+rule inspect_simjob_logs:
+    """Reports any warning from the simulation job logs."""
+    params:
+        logdir=config["paths"]["log"],
+    script:
+        "scripts/inspect_MaGe_logs.sh"
