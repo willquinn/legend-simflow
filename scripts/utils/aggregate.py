@@ -110,7 +110,7 @@ def process_simlist_or_all(setup, simlist=None):
 
     if Path(simlist).is_file():
         with Path(simlist).open() as f:
-            simlist = [l.rstrip() for l in f.readlines()]
+            simlist = [line.rstrip() for line in f.readlines()]
     elif isinstance(simlist, str):
         simlist = [simlist]
 
