@@ -28,6 +28,7 @@ with Path(snakemake.input.cfgfile).open() as f:
 n_prim = config.pop("number_of_primaries")
 n_macros = None
 outver_list = None
+is_benchmark = False
 
 # determine whether external vertices are required
 if "vertices" in config:
@@ -46,10 +47,10 @@ if not n_macros:
     n_macros = config.pop("number_of_jobs")
 
 if "benchmark" in snakemake.config:
-    cfg = snakemake.config["benchmark"]
-    if cfg.get("enabled", False):
+    is_benchmark = snakemake.config["benchmark"].get("enabled", False)
+    if is_benchmark:
         n_macros = 1
-        n_prim = cfg["n_primaries"][snakemake.params.tier]
+        n_prim = snakemake.config["benchmark"]["n_primaries"][snakemake.params.tier]
 
 # prepare global substitution rules
 substitutions = {"NUMBER_OF_PRIMARIES": int(n_prim / n_macros)}
@@ -71,7 +72,7 @@ with Path(snakemake.input.template).open() as f:
     # if benchmark run, write all events to disk, not only those that deposit
     # energy in the detectors. TODO: hardcoding application-specific commands
     # is not nice here
-    if "benchmark" in snakemake.config:
+    if is_benchmark:
         text = re.sub(
             r"\n */MG/io/MCRun/setWriteEventsThatDepositEnergyInGe +true *\n",
             "\n",

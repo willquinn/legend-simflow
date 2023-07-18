@@ -33,12 +33,12 @@ def get_simid_n_macros(config, tier, simid):
     tdir = patterns.template_macro_dir(config, tier=tier)
 
     with (Path(tdir) / "simconfig.json").open() as f:
-        config = json.load(f)[simid]
+        sconfig = json.load(f)[simid]
 
-    if "vertices" in config and "number_of_jobs" not in config:
-        return len(gen_list_of_simid_outputs(config, "ver", config["vertices"]))
-    elif "number_of_jobs" in config:
-        return config["number_of_jobs"]
+    if "vertices" in sconfig and "number_of_jobs" not in sconfig:
+        return len(gen_list_of_simid_outputs(config, "ver", sconfig["vertices"]))
+    elif "number_of_jobs" in sconfig:
+        return sconfig["number_of_jobs"]
     else:
         msg = "simulation config must contain 'vertices' or 'number_of_jobs'"
         raise RuntimeError(msg)
