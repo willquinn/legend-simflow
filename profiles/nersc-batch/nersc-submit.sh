@@ -16,8 +16,6 @@ for s in simids:
     print(f"raw.{s}", end=" ")
 ')
 
-simids="raw.l200a-wls-reflector-Rn222-to-Po214"
-
 for s in $simids; do
     sbatch \
         --nodes 1 \
