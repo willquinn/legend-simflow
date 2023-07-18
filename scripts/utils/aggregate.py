@@ -21,103 +21,105 @@ from pathlib import Path
 from . import patterns
 
 
-def get_simid_n_macros(setup, tier, simid):
+def get_simid_n_macros(config, tier, simid):
     """Returns the number of macros that will be generated for a given `tier`
     and `simid`."""
     if tier not in ("ver", "raw"):
         tier = "raw"
 
-    if "benchmark" in setup and setup["benchmark"].get("enabled", False):
+    if "benchmark" in config and config["benchmark"].get("enabled", False):
         return 1
 
-    tdir = patterns.template_macro_dir(setup, tier=tier)
+    tdir = patterns.template_macro_dir(config, tier=tier)
 
     with (Path(tdir) / "simconfig.json").open() as f:
-        config = json.load(f)[simid]
+        sconfig = json.load(f)[simid]
 
-    if "vertices" in config and "number_of_jobs" not in config:
-        return len(gen_list_of_simid_outputs(setup, "ver", config["vertices"]))
-    elif "number_of_jobs" in config:
-        return config["number_of_jobs"]
+    if "vertices" in sconfig and "number_of_jobs" not in sconfig:
+        return len(gen_list_of_simid_outputs(config, "ver", sconfig["vertices"]))
+    elif "number_of_jobs" in sconfig:
+        return sconfig["number_of_jobs"]
     else:
         msg = "simulation config must contain 'vertices' or 'number_of_jobs'"
         raise RuntimeError(msg)
 
 
-def collect_simconfigs(setup, tiers):
+def collect_simconfigs(config, tiers):
     cfgs = []
     for tier in tiers:
         with (
-            patterns.template_macro_dir(setup, tier=tier) / "simconfig.json"
+            patterns.template_macro_dir(config, tier=tier) / "simconfig.json"
         ).open() as f:
             for sid, _val in json.load(f).items():
-                cfgs.append((tier, sid, get_simid_n_macros(setup, tier, sid)))
+                cfgs.append((tier, sid, get_simid_n_macros(config, tier, sid)))
 
     return cfgs
 
 
-def gen_list_of_simid_inputs(setup, tier, simid):
+def gen_list_of_simid_inputs(config, tier, simid):
     """Generates the full list of input files for a `tier` and `simid`."""
-    n_macros = get_simid_n_macros(setup, tier, simid)
-    return patterns.input_simid_filenames(setup, n_macros, tier=tier, simid=simid)
+    n_macros = get_simid_n_macros(config, tier, simid)
+    return patterns.input_simid_filenames(config, n_macros, tier=tier, simid=simid)
 
 
-def gen_list_of_simid_outputs(setup, tier, simid, max_files=None):
+def gen_list_of_simid_outputs(config, tier, simid, max_files=None):
     """Generates the full list of output files for a `simid`."""
-    n_macros = get_simid_n_macros(setup, tier, simid)
+    n_macros = get_simid_n_macros(config, tier, simid)
     if max_files is not None:
         n_macros = min(n_macros, max_files)
-    return patterns.output_simid_filenames(setup, n_macros, tier=tier, simid=simid)
+    return patterns.output_simid_filenames(config, n_macros, tier=tier, simid=simid)
 
 
-def gen_list_of_all_simids(setup, tier):
+def gen_list_of_all_simids(config, tier):
     if tier not in ("ver", "raw"):
         tier = "raw"
-    with (patterns.template_macro_dir(setup, tier=tier) / "simconfig.json").open() as f:
+    with (
+        patterns.template_macro_dir(config, tier=tier) / "simconfig.json"
+    ).open() as f:
         return json.load(f).keys()
 
 
-def gen_list_of_all_macros(setup, tier):
+def gen_list_of_all_macros(config, tier):
     mlist = []
-    for sid in gen_list_of_all_simids(setup, tier):
-        mlist += gen_list_of_simid_inputs(setup, tier=tier, simid=sid)
+    for sid in gen_list_of_all_simids(config, tier):
+        mlist += gen_list_of_simid_inputs(config, tier=tier, simid=sid)
 
     return mlist
 
 
-def gen_list_of_all_simid_outputs(setup, tier):
+def gen_list_of_all_simid_outputs(config, tier):
     mlist = []
-    for sid in gen_list_of_all_simids(setup, tier):
-        mlist += gen_list_of_simid_outputs(setup, tier=tier, simid=sid)
+    for sid in gen_list_of_all_simids(config, tier):
+        mlist += gen_list_of_simid_outputs(config, tier=tier, simid=sid)
 
     return mlist
 
 
-def gen_list_of_all_plots_outputs(setup, tier):
+def gen_list_of_all_plots_outputs(config, tier):
     mlist = []
-    for sid in gen_list_of_all_simids(setup, tier):
+    for sid in gen_list_of_all_simids(config, tier):
         mlist += [
-            patterns.plots_file_path(setup, tier=tier, simid=sid)
+            patterns.plots_file_path(config, tier=tier, simid=sid)
             + "/mage-event-vertices.png"
         ]
 
     return mlist
 
 
-def process_simlist_or_all(setup, simlist=None):
+def process_simlist_or_all(config, simlist=None):
     if simlist is None:
-        simlist = setup.get("simlist", None)
+        simlist = config.get("simlist", None)
 
     if Path(simlist).is_file():
         with Path(simlist).open() as f:
-            simlist = [l.rstrip() for l in f.readlines()]
+            simlist = [line.rstrip() for line in f.readlines()]
     elif isinstance(simlist, str):
         simlist = [simlist]
 
     mlist = []
     for line in simlist:
         mlist += gen_list_of_simid_outputs(
-            setup, tier=line.split(".")[0], simid=line.split(".")[1].rstrip()
+            config, tier=line.split(".")[0], simid=line.split(".")[1].rstrip()
         )
 
     return mlist

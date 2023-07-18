@@ -38,36 +38,40 @@ def simjob_rel_basename(**kwargs):
     return expand("{simid}/{simid}_{jobid}", **kwargs, allow_missing=True)[0]
 
 
-def run_command(setup, tier):
+def run_command(config, tier):
     """Returns command to build files in tier `tier` prefixed by environment."""
-    return "{swenv} " + setup["runcmd"][tier]
+    return "{swenv} " + config["runcmd"][tier]
 
 
-def log_file_path(setup, **kwargs):
+def log_file_path(config, **kwargs):
     """Formats a log file path for a `simid` and `jobid`."""
-    pat = str(Path(setup["paths"]["log"]) / "{tier}" / (simjob_rel_basename() + ".log"))
-    return expand(pat, **kwargs, allow_missing=True)[0]
-
-
-def benchmark_file_path(setup, **kwargs):
-    """Formats a benchmark file path for a `simid` and `jobid`."""
     pat = str(
-        Path(setup["paths"]["benchmarks"]) / "{tier}" / (simjob_rel_basename() + ".tsv")
+        Path(config["paths"]["log"]) / "{tier}" / (simjob_rel_basename() + ".log")
     )
     return expand(pat, **kwargs, allow_missing=True)[0]
 
 
-def plots_file_path(setup, **kwargs):
+def benchmark_file_path(config, **kwargs):
     """Formats a benchmark file path for a `simid` and `jobid`."""
-    pat = str(Path(setup["paths"]["plots"]) / "{tier}" / "{simid}")
+    pat = str(
+        Path(config["paths"]["benchmarks"])
+        / "{tier}"
+        / (simjob_rel_basename() + ".tsv")
+    )
     return expand(pat, **kwargs, allow_missing=True)[0]
 
 
-def genmacro_log_file_path(setup, **kwargs):
+def plots_file_path(config, **kwargs):
+    """Formats a benchmark file path for a `simid` and `jobid`."""
+    pat = str(Path(config["paths"]["plots"]) / "{tier}" / "{simid}")
+    return expand(pat, **kwargs, allow_missing=True)[0]
+
+
+def genmacro_log_file_path(config, **kwargs):
     """Formats a log file path for a `simid` and `jobid`."""
     return expand(
         str(
-            Path(setup["paths"]["log"])
+            Path(config["paths"]["log"])
             / "macros"
             / "{tier}"
             / (simjob_rel_basename() + ".log")
@@ -77,28 +81,28 @@ def genmacro_log_file_path(setup, **kwargs):
     )[0]
 
 
-def template_macro_dir(setup, **kwargs):
+def template_macro_dir(config, **kwargs):
     """Returns the directory path to the macro templates for the current `tier`."""
     tier = expand("{tier}", **kwargs, allow_missing=True)[0]
-    return Path(setup["paths"]["config"]) / "tier" / tier / setup["experiment"]
+    return Path(config["paths"]["config"]) / "tier" / tier / config["experiment"]
 
 
 # ver, raw tiers
 
 
-def macro_gen_inputs(setup, tier, simid, **kwargs):
+def macro_gen_inputs(config, tier, simid, **kwargs):
     """Return inputs for the Snakemake rules that generate macros."""
-    tdir = template_macro_dir(setup, tier=tier)
+    tdir = template_macro_dir(config, tier=tier)
 
     with (tdir / "simconfig.json").open() as f:
-        config = json.load(f)[simid]
+        sconfig = json.load(f)[simid]
 
-    if "template" not in config:
+    if "template" not in sconfig:
         msg = "simconfig.json blocks must define a 'template' field."
         raise RuntimeError(msg)
 
     expr = {
-        "template": str(tdir / config["template"]),
+        "template": str(tdir / sconfig["template"]),
         "cfgfile": str(tdir / "simconfig.json"),
     }
     for k, v in expr.items():
@@ -106,7 +110,7 @@ def macro_gen_inputs(setup, tier, simid, **kwargs):
     return expr
 
 
-def input_simjob_filename(setup, **kwargs):
+def input_simjob_filename(config, **kwargs):
     """Returns the full path to the input file for a `simid`, `tier` and job index."""
     tier = kwargs.get("tier", None)
 
@@ -115,14 +119,14 @@ def input_simjob_filename(setup, **kwargs):
         raise RuntimeError(msg)
 
     expr = str(
-        Path(setup["paths"]["macros"])
+        Path(config["paths"]["macros"])
         / f"{tier}"
-        / (simjob_rel_basename() + setup["filetypes"]["input"][tier])
+        / (simjob_rel_basename() + config["filetypes"]["input"][tier])
     )
     return expand(expr, **kwargs, allow_missing=True)[0]
 
 
-def output_simjob_filename(setup, **kwargs):
+def output_simjob_filename(config, **kwargs):
     """Returns the full path to the output file for a `simid`, `tier` and job index."""
     tier = kwargs.get("tier", None)
 
@@ -131,37 +135,37 @@ def output_simjob_filename(setup, **kwargs):
         raise RuntimeError(msg)
 
     expr = str(
-        Path(setup["paths"][f"tier_{tier}"])
-        / (simjob_rel_basename() + setup["filetypes"]["output"][tier])
+        Path(config["paths"][f"tier_{tier}"])
+        / (simjob_rel_basename() + config["filetypes"]["output"][tier])
     )
     return expand(expr, **kwargs, allow_missing=True)[0]
 
 
-def input_simid_filenames(setup, n_macros, **kwargs):
+def input_simid_filenames(config, n_macros, **kwargs):
     """Returns the full path to `n_macros` input files for a `simid`. Needed by
     script that generates all macros for a `simid`.
     """
-    pat = input_simjob_filename(setup, **kwargs)
+    pat = input_simjob_filename(config, **kwargs)
     jobids = expand("{id:>04d}", id=list(range(n_macros)))
     return expand(pat, jobid=jobids, **kwargs, allow_missing=True)
 
 
-def output_simid_filenames(setup, n_macros, **kwargs):
+def output_simid_filenames(config, n_macros, **kwargs):
     """Returns the full path to `n_macros` output files for a `simid`."""
-    pat = output_simjob_filename(setup, **kwargs)
+    pat = output_simjob_filename(config, **kwargs)
     jobids = expand("{id:>04d}", id=list(range(n_macros)))
     return expand(pat, jobid=jobids, **kwargs, allow_missing=True)
 
 
-def smk_ver_filename_for_raw(setup, wildcards):
+def smk_ver_filename_for_raw(config, wildcards):
     """Returns the vertices file needed for the 'raw' tier job, if needed. Used
     as lambda function in the `build_tier_raw` Snakemake rule."""
-    tdir = template_macro_dir(setup, tier="raw")
+    tdir = template_macro_dir(config, tier="raw")
 
     with (tdir / "simconfig.json").open() as f:
-        config = json.load(f)[wildcards.simid]
+        sconfig = json.load(f)[wildcards.simid]
 
-    if "vertices" in config:
-        return output_simjob_filename(setup, tier="ver", simid=config["vertices"])
+    if "vertices" in sconfig:
+        return output_simjob_filename(config, tier="ver", simid=sconfig["vertices"])
     else:
         return []

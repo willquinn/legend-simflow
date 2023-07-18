@@ -3,7 +3,7 @@
 # module load python
 # mamba activate snakemake
 
-cd "$1"
+cd "$1" || exit 1
 mkdir -p .slurm
 
 simids=$(python -c '
