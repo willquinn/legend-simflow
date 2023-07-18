@@ -108,11 +108,16 @@ def process_simlist_or_all(setup, simlist=None):
     if simlist is None:
         simlist = setup.get("simlist", None)
 
+    if Path(simlist).is_file():
+        with Path(simlist).open() as f:
+            simlist = [l.rstrip() for l in f.readlines()]
+    elif isinstance(simlist, str):
+        simlist = [simlist]
+
     mlist = []
-    with Path(simlist).open() as f:
-        for line in f:
-            mlist += gen_list_of_simid_outputs(
-                setup, tier=line.split(".")[0], simid=line.split(".")[1].rstrip()
-            )
+    for line in simlist:
+        mlist += gen_list_of_simid_outputs(
+            setup, tier=line.split(".")[0], simid=line.split(".")[1].rstrip()
+        )
 
     return mlist
