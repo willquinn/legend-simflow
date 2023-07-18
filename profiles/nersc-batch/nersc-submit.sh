@@ -4,7 +4,9 @@
 # mamba activate snakemake
 
 cd "$1" || exit 1
-mkdir -p .slurm
+
+logdir=".slurm/$(date +'%Y%m%dT%H%M%SZ')"
+mkdir -p "$logdir"
 
 simids=$(python -c '
 import json
@@ -22,12 +24,12 @@ for s in $simids; do
         --ntasks-per-node=1 \
         --account m2676 \
         --constraint cpu \
-        --time 6:00:00 \
+        --time 12:00:00 \
         --qos regular \
         --licenses scratch,cfs \
         --job-name "$s" \
-        --output ".slurm/$s.log" \
-        --error ".slurm/$s.log" \
+        --output "$logdir/$s.log" \
+        --error "$logdir/$s.log" \
         --wrap "
             srun snakemake \
                 --profile workflow/profiles/nersc-interactive \
