@@ -69,3 +69,17 @@ def subst_vars_in_snakemake_config(workflow, config):
         use_env=True,
         ignore_missing=False,
     )
+
+
+def get_some_list(field):
+    """Get a list, whether it's in a file or directly specified."""
+    if isinstance(field, str):
+        if Path(field).is_file():
+            with Path(field).open() as f:
+                slist = [line.rstrip() for line in f.readlines()]
+        else:
+            slist = [field]
+    elif isinstance(field, list):
+        slist = field
+
+    return slist

@@ -30,6 +30,7 @@ wildcard_constraints:
     tier="\w+",
     simid="[-\w]+",
     jobid="\w+",
+    runid="[.\w]+",
 
 
 def gen_target_all():
@@ -65,6 +66,11 @@ rule gen_all_tier_hit:
     """Aggregate and produce all the 'hit' tier files."""
     input:
         aggregate.gen_list_of_all_simid_outputs(config, tier="hit"),
+
+
+# rule gen_all_tier_evt:
+#     input:
+#         aggregate.gen_list_of_all_tier_evt_outputs(config),
 
 
 # since the number of generated macros for the 'output' field
@@ -157,8 +163,8 @@ for tier, simid, _ in simconfigs:
         input:
             aggregate.gen_list_of_simid_outputs(config, tier, simid, max_files=5),
         output:
-            patterns.plots_file_path(config, tier=tier, simid=simid)
-            + "/mage-event-vertices.png",
+            Path(patterns.plots_file_path(config, tier=tier, simid=simid))
+            / "mage-event-vertices.png",
         priority: 100
         shell:
             (
@@ -184,6 +190,49 @@ rule build_tier_hit:
         "copy-minimal"  # want the raw files to be in the shadow area
     shell:
         patterns.run_command(config, "hit")
+
+
+rule make_tier_evt_config_file:
+    """Uses wildcard `runid`."""
+    input:
+        config["paths"]["metadata"],
+    output:
+        Path(config["paths"]["genconfig"]) / "mpp-config.{runid}.json",
+    script:
+        "scripts/make_tier_evt_config_file.py"
+
+
+rule make_run_partition_file:
+    input:
+        Path(config["paths"]["metadata"]) / "dataprod" / "run_info.json",
+    output:
+        Path(config["paths"]["genconfig"]) / "run-partition.json",
+    script:
+        "scripts/make_run_partition_file.py"
+
+
+rule build_tier_evt:
+    """Produces an 'evt' tier file."""
+    message:
+        "Producing output file for job 'evt.{simid}.{runid}'"
+    input:
+        hit_files=lambda wildcards: aggregate.gen_list_of_all_simid_outputs(
+            config, tier="hit", only_simid=wildcards.simid
+        ),
+        config_file=rules.make_tier_evt_config_file.output,
+        run_part_file=rules.make_run_partition_file.output,
+        hpge_db=Path(config["paths"]["metadata"])
+        / "hardware/detectors/germanium/diodes",
+    output:
+        patterns.output_evt_filename(config),
+    log:
+        patterns.log_evtfile_path(config),
+    benchmark:
+        patterns.benchmark_evtfile_path(config)
+    shadow:
+        "copy-minimal"  # want the hit files to be in the shadow area
+    script:
+        "scripts/spawn_tier_evt_process.py"
 
 
 rule print_stats:

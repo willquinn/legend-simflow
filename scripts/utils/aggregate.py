@@ -18,7 +18,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from . import patterns
+from . import patterns, utils
 
 
 def get_simid_n_macros(config, tier, simid):
@@ -87,9 +87,10 @@ def gen_list_of_all_macros(config, tier):
     return mlist
 
 
-def gen_list_of_all_simid_outputs(config, tier):
+def gen_list_of_all_simid_outputs(config, tier, only_simid=None):
     mlist = []
-    for sid in gen_list_of_all_simids(config, tier):
+    slist = gen_list_of_all_simids(config, tier) if only_simid is None else only_simid
+    for sid in slist:
         mlist += gen_list_of_simid_outputs(config, tier=tier, simid=sid)
 
     return mlist
@@ -108,13 +109,7 @@ def gen_list_of_all_plots_outputs(config, tier):
 
 def process_simlist_or_all(config, simlist=None):
     if simlist is None:
-        simlist = config.get("simlist", None)
-
-    if Path(simlist).is_file():
-        with Path(simlist).open() as f:
-            simlist = [line.rstrip() for line in f.readlines()]
-    elif isinstance(simlist, str):
-        simlist = [simlist]
+        simlist = utils.get_some_list(config["simlist"])
 
     mlist = []
     for line in simlist:

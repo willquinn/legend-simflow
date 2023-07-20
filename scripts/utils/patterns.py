@@ -87,7 +87,7 @@ def template_macro_dir(config, **kwargs):
     return Path(config["paths"]["config"]) / "tier" / tier / config["experiment"]
 
 
-# ver, raw tiers
+# ver, raw, hit tiers
 
 
 def macro_gen_inputs(config, tier, simid, **kwargs):
@@ -169,3 +169,30 @@ def smk_ver_filename_for_raw(config, wildcards):
         return output_simjob_filename(config, tier="ver", simid=sconfig["vertices"])
     else:
         return []
+
+
+# evt tier
+
+
+def evtfile_rel_basename(**kwargs):
+    return expand("{simid}/{simid}_{runid}", **kwargs, allow_missing=True)[0]
+
+
+def output_evt_filename(config, **kwargs):
+    expr = str(
+        Path(config["paths"]["tier_evt"])
+        / (evtfile_rel_basename() + config["filetypes"]["output"]["evt"])
+    )
+    return expand(expr, **kwargs, allow_missing=True)[0]
+
+
+def log_evtfile_path(config, **kwargs):
+    pat = str(Path(config["paths"]["log"]) / "evt" / (evtfile_rel_basename() + ".log"))
+    return expand(pat, **kwargs, allow_missing=True)[0]
+
+
+def benchmark_evtfile_path(config, **kwargs):
+    pat = str(
+        Path(config["paths"]["benchmarks"]) / "evt" / (evtfile_rel_basename() + ".tsv")
+    )
+    return expand(pat, **kwargs, allow_missing=True)[0]

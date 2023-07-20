@@ -1,5 +1,14 @@
 {
   "experiment": "l200a",
+  "simlist": "all",
+  "runlist": [
+    "phy.p03.r000",
+    "phy.p03.r001",
+    "phy.p03.r002",
+    "phy.p03.r003",
+    "phy.p03.r005",
+    "phy.p03.r004"
+  ],
   "benchmark": {
     "enabled": false,
     "n_primaries": {
@@ -16,6 +25,7 @@
     "tier_hit": "./generated/tier/hit",
     "tier_evt": "$_/generated/tier/evt",
     "tier_pdf": "$_/generated/tier/pdf",
+    "genconfig": "$_/generated/config",
     "macros": "$_/generated/macros",
     "plots": "$_/generated/plots",
     "log": "$_/generated/log",
