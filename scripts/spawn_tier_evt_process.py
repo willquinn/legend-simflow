@@ -21,7 +21,8 @@ from collections import OrderedDict
 from pathlib import Path
 
 import uproot
-from utils import patterns, utils
+from snakemake.io import expand
+from utils import patterns
 
 # open file with run livetime partitioning
 with Path(snakemake.input.run_part_file[0]).open() as f:
@@ -43,13 +44,12 @@ start_event = sum(weights[: runs.index(snakemake.wildcards.runid)])
 n_events = tot_events * runpart[snakemake.wildcards.runid]
 
 # substitute $START_EVENT and $N_EVENTS in the command line
-cmd = utils.subst_vars(
+cmd = expand(
     patterns.run_command(snakemake.config, tier="evt"),
-    {
-        "START_EVENT": start_event,
-        "N_EVENTS": n_events,
-    },
-)
+    _start_event=start_event,
+    _n_events=n_events,
+    allow_missing=True,
+)[0]
 
 # exec command
 subprocess.run(cmd)
