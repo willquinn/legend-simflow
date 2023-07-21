@@ -20,7 +20,7 @@ from pathlib import Path
 
 # TODO: configure mpp call with snakemake.inputs/outputs
 
-with Path(snakemake.input.run_part_file).open() as f:
+with Path(snakemake.input.run_part_file[0]).open() as f:
     json.load(f)
 
 # TODO: open snakemake.input.hitfiles and calculate total amount of events
