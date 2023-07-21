@@ -19,9 +19,6 @@ import argparse
 
 import ROOT
 
-ROOT.PyConfig.IgnoreCommandLineOptions = False
-
-
 parser = argparse.ArgumentParser(
     prog="plot_mage_vertices", description="plot MaGe primary event vertices"
 )

@@ -16,16 +16,40 @@
 # ruff: noqa: F821, T201
 
 import json
+import subprocess
+from collections import OrderedDict
 from pathlib import Path
 
-# TODO: configure mpp call with snakemake.inputs/outputs
+import uproot
+from utils import patterns, utils
 
+# open file with run livetime partitioning
 with Path(snakemake.input.run_part_file[0]).open() as f:
-    json.load(f)
+    runpart = json.load(f, object_pairs_hook=OrderedDict)
 
-# TODO: open snakemake.input.hitfiles and calculate total amount of events
-# (with PyROOT?), then combine with run_part_file info to determine the mpp
-# command line parameters
+# get total number of mc events
+file_evts = uproot.num_entries(
+    [f"{file}:simTree" for file in snakemake.input.hit_files]
+)
+tot_events = 0
+for file in file_evts:
+    tot_events += file[-1]
 
-with Path(snakemake.output[0]).open("w") as f:
-    f.write("")
+runs = list(runpart.keys())
+weights = [tot_events * v for v in runpart.values()]
+
+# compute start event and number of events for this run
+start_event = sum(weights[: runs.index(snakemake.wildcards.runid)])
+n_events = tot_events * runpart[snakemake.wildcards.runid]
+
+# substitute $START_EVENT and $N_EVENTS in the command line
+cmd = utils.subst_vars(
+    patterns.run_command(snakemake.config, tier="evt"),
+    {
+        "START_EVENT": start_event,
+        "N_EVENTS": n_events,
+    },
+)
+
+# exec command
+subprocess.run(cmd)
