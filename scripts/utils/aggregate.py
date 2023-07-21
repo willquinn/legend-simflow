@@ -87,9 +87,9 @@ def gen_list_of_all_macros(config, tier):
     return mlist
 
 
-def gen_list_of_all_simid_outputs(config, tier, only_simid=None):
+def gen_list_of_all_simid_outputs(config, tier):
     mlist = []
-    slist = gen_list_of_all_simids(config, tier) if only_simid is None else only_simid
+    slist = gen_list_of_all_simids(config, tier)
     for sid in slist:
         mlist += gen_list_of_simid_outputs(config, tier=tier, simid=sid)
 
@@ -103,6 +103,28 @@ def gen_list_of_all_plots_outputs(config, tier):
             patterns.plots_file_path(config, tier=tier, simid=sid)
             + "/mage-event-vertices.png"
         ]
+
+    return mlist
+
+
+# evt tier
+
+
+def gen_list_of_tier_evt_outputs(config, simid):
+    runlist = utils.get_some_list(config["runlist"])
+
+    mlist = []
+    for runid in runlist:
+        mlist += [patterns.output_evt_filename(config, simid=simid, runid=runid)]
+
+    return mlist
+
+
+def gen_list_of_all_tier_evt_outputs(config):
+    mlist = []
+    slist = gen_list_of_all_simids(config, tier="raw")
+    for sid in slist:
+        mlist += gen_list_of_tier_evt_outputs(config, simid=sid)
 
     return mlist
 

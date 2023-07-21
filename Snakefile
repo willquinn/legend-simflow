@@ -68,9 +68,9 @@ rule gen_all_tier_hit:
         aggregate.gen_list_of_all_simid_outputs(config, tier="hit"),
 
 
-# rule gen_all_tier_evt:
-#     input:
-#         aggregate.gen_list_of_all_tier_evt_outputs(config),
+rule gen_all_tier_evt:
+    input:
+        aggregate.gen_list_of_all_tier_evt_outputs(config),
 
 
 # since the number of generated macros for the 'output' field
@@ -112,7 +112,7 @@ rule build_tier_ver:
     to manually remove the output simulation files or force execution.
     """
     message:
-        "Producing output file for job 'ver.{simid}.{jobid}'"
+        "Producing output file for job 'ver.{wildcards.simid}.{wildcards.jobid}'"
     input:
         macro=ancient(patterns.input_simjob_filename(config, tier="ver")),
     output:
@@ -140,7 +140,7 @@ rule build_tier_raw:
     to manually remove the output simulation files or force execution.
     """
     message:
-        "Producing output file for job 'raw.{simid}.{jobid}'"
+        "Producing output file for job 'raw.{wildcards.simid}.{wildcards.jobid}'"
     input:
         macro=ancient(patterns.input_simjob_filename(config, tier="raw")),
         verfile=lambda wildcards: patterns.smk_ver_filename_for_raw(config, wildcards),
@@ -177,7 +177,7 @@ for tier, simid, _ in simconfigs:
 rule build_tier_hit:
     """Produces a 'hit' tier file starting from a single 'raw' tier file."""
     message:
-        "Producing output file for job 'hit.{simid}.{jobid}'"
+        "Producing output file for job 'hit.{wildcards.simid}.{wildcards.jobid}'"
     input:
         rules.build_tier_raw.output,
     output:
@@ -214,10 +214,10 @@ rule make_run_partition_file:
 rule build_tier_evt:
     """Produces an 'evt' tier file."""
     message:
-        "Producing output file for job 'evt.{simid}.{runid}'"
+        "Producing output file for job 'evt.{wildcards.simid}.{wildcards.runid}'"
     input:
-        hit_files=lambda wildcards: aggregate.gen_list_of_all_simid_outputs(
-            config, tier="hit", only_simid=wildcards.simid
+        hit_files=lambda wildcards: aggregate.gen_list_of_simid_outputs(
+            config, tier="hit", simid=wildcards.simid
         ),
         config_file=rules.make_tier_evt_config_file.output,
         run_part_file=rules.make_run_partition_file.output,

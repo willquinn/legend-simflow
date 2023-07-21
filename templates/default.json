@@ -53,8 +53,8 @@
   "runcmd": {
     "ver": "$_/workflow/scripts/MaGe.sh {input.macro} {log}",
     "raw": "$_/workflow/scripts/MaGe.sh {input.macro} {log}",
-    "hit": "touch {output}",
-    "evt": "touch {output}",
+    "hit": "process_L200_hit.py -o {output} -- {input}",
+    "evt": "process_L200_evt.py -o {output} -c {input-config_file} -d {input.hpge_db} -s {start_event} -N {n_events} {input.hit_files}",
     "pdf": "touch {output}"
   },
   "execenv": [
