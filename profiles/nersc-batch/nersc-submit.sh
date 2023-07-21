@@ -19,6 +19,10 @@ for s in simids:
 ')
 
 for s in $simids; do
+    echo ">>> $s"
+    snakemake --config simlist=$s --dry-run | grep 'Nothing to be done' && continue
+
+    echo "Submitting..."
     sbatch \
         --nodes 1 \
         --ntasks-per-node=1 \
