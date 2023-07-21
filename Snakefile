@@ -34,7 +34,7 @@ wildcard_constraints:
 
 
 def gen_target_all():
-    if config.get("simlist", "all") == "all":
+    if config.get("simlist", "*") in ("all", "*"):
         return (
             aggregate.gen_list_of_all_simid_outputs(config, tier="hit"),
             aggregate.gen_list_of_all_plots_outputs(config, tier="raw"),
