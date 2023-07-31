@@ -129,6 +129,19 @@ def gen_list_of_all_tier_evt_outputs(config):
     return mlist
 
 
+# pdf tier
+
+
+def gen_list_of_all_tier_pdf_outputs(config):
+    mlist = []
+    slist = gen_list_of_all_simids(config, tier="raw")
+    for sid in slist:
+        mlist += [patterns.output_pdf_filename(config, simid=sid)]
+
+    return mlist
+
+
+# TODO: this does not work above the hit tier
 def process_simlist_or_all(config, simlist=None):
     if simlist is None:
         simlist = utils.get_some_list(config["simlist"])

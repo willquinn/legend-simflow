@@ -40,7 +40,7 @@ def simjob_rel_basename(**kwargs):
 
 def run_command(config, tier):
     """Returns command to build files in tier `tier` prefixed by environment."""
-    return "{swenv} " + config["runcmd"][tier]
+    return " ".join(config["execenv"]) + " " + config["runcmd"][tier]
 
 
 def log_file_path(config, **kwargs):
@@ -195,4 +195,24 @@ def benchmark_evtfile_path(config, **kwargs):
     pat = str(
         Path(config["paths"]["benchmarks"]) / "evt" / (evtfile_rel_basename() + ".tsv")
     )
+    return expand(pat, **kwargs, allow_missing=True)[0]
+
+
+# pdf tier
+
+
+def pdffile_rel_basename(**kwargs):
+    return expand("{simid}/{simid}", **kwargs, allow_missing=True)[0]
+
+
+def output_pdf_filename(config, **kwargs):
+    expr = str(
+        Path(config["paths"]["tier_pdf"])
+        / (pdffile_rel_basename() + config["filetypes"]["output"]["pdf"])
+    )
+    return expand(expr, **kwargs, allow_missing=True)[0]
+
+
+def log_pdffile_path(config, **kwargs):
+    pat = str(Path(config["paths"]["log"]) / "pdf" / (pdffile_rel_basename() + ".log"))
     return expand(pat, **kwargs, allow_missing=True)[0]

@@ -45,7 +45,7 @@ n_events = tot_events * runpart[snakemake.wildcards.runid]
 
 # substitute $START_EVENT and $N_EVENTS in the command line
 cmd = expand(
-    patterns.run_command(snakemake.config, tier="evt"),
+    patterns.run_command(snakemake.config, "evt"),
     _start_event=start_event,
     _n_events=n_events,
     allow_missing=True,

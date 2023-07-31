@@ -22,7 +22,6 @@ if not config:
 
 utils.subst_vars_in_snakemake_config(workflow, config)
 
-swenv = " ".join(config["execenv"])
 config.setdefault("benchmark", {"enabled": False})
 
 
@@ -69,8 +68,15 @@ rule gen_all_tier_hit:
 
 
 rule gen_all_tier_evt:
+    """Aggregate and produce all the 'evt' tier files."""
     input:
         aggregate.gen_list_of_all_tier_evt_outputs(config),
+
+
+rule gen_all_tier_pdf:
+    """Aggregate and produce all the 'pdf' tier files."""
+    input:
+        aggregate.gen_list_of_all_tier_pdf_outputs(config),
 
 
 # since the number of generated macros for the 'output' field
@@ -168,7 +174,8 @@ for tier, simid, _ in simconfigs:
         priority: 100
         shell:
             (
-                "{swenv} python "
+                " ".join(config["execenv"])
+                + " python "
                 + workflow.source_path("scripts/plot_mage_vertices.py")
                 + " -b -o {output} {input}"
             )
@@ -233,6 +240,22 @@ rule build_tier_evt:
         "copy-minimal"  # want the hit files to be in the shadow area
     script:
         "scripts/spawn_tier_evt_process.py"
+
+
+rule build_tier_pdf:
+    """Produces a 'pdf' tier file."""
+    message:
+        "Producing output file for job 'pdf.{wildcards.simid}'"
+    input:
+        lambda wildcards: aggregate.gen_list_of_all_tier_evt_outputs(
+            config, wildcards.simid
+        ),
+    output:
+        patterns.output_pdf_filename(config),
+    log:
+        patterns.log_pdffile_path(config),
+    shell:
+        patterns.run_command(config, "pdf")
 
 
 rule print_stats:
