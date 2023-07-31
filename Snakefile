@@ -29,7 +29,7 @@ config.setdefault("benchmark", {"enabled": False})
 wildcard_constraints:
     tier="\w+",
     simid="[-\w]+",
-    jobid="\w+",
+    jobid="\d+",
     runid="[.\w]+",
 
 
@@ -204,7 +204,7 @@ rule make_tier_evt_config_file:
 
 rule make_run_partition_file:
     input:
-        Path(config["paths"]["metadata"]) / "dataprod" / "run_info.json",
+        Path(config["paths"]["metadata"]) / "dataprod" / "runinfo.json",
     output:
         Path(config["paths"]["genconfig"]) / "run-partition.json",
     script:
