@@ -235,11 +235,13 @@ rule build_tier_evt:
     output:
         patterns.output_evt_filename(config),
     params:
-        evt_window=lambda wildcards, input: tier_evt.smk_get_evt_window(config, wildcards, input),
+        evt_window=lambda wildcards, input: tier_evt.smk_get_evt_window(
+            wildcards, input
+        ),
     log:
         patterns.log_evtfile_path(config),
     benchmark:
-        patterns.benchmark_evtfile_path(config),
+        patterns.benchmark_evtfile_path(config)
     shadow:
         "copy-minimal"  # want the hit files to be in the shadow area
     shell:

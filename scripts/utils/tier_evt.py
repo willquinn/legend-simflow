@@ -21,10 +21,8 @@ from pathlib import Path
 
 import uproot
 
-from . import patterns, aggregate
 
-
-def smk_get_evt_window(config, wildcards, input):
+def smk_get_evt_window(wildcards, input):
     # open file with run livetime partitioning
     with Path(input.run_part_file[0]).open() as f:
         runpart = json.load(f, object_pairs_hook=OrderedDict)
