@@ -1,6 +1,7 @@
 configfile: config.json
 keep-going: true
 rerun-incomplete: true
+rerun-triggers: [mtime]
 
 cores: all
 
