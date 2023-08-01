@@ -5,6 +5,8 @@
 
 cd "$1" || exit 1
 
+rm -rf .snakemake
+
 logdir=".slurm/$(date +'%Y%m%dT%H%M%SZ')"
 mkdir -p "$logdir"
 
