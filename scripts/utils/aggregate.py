@@ -44,18 +44,6 @@ def get_simid_n_macros(config, tier, simid):
         raise RuntimeError(msg)
 
 
-def collect_simconfigs(config, tiers):
-    cfgs = []
-    for tier in tiers:
-        with (
-            patterns.template_macro_dir(config, tier=tier) / "simconfig.json"
-        ).open() as f:
-            for sid, _val in json.load(f).items():
-                cfgs.append((tier, sid, get_simid_n_macros(config, tier, sid)))
-
-    return cfgs
-
-
 def gen_list_of_simid_inputs(config, tier, simid):
     """Generates the full list of input files for a `tier` and `simid`."""
     n_macros = get_simid_n_macros(config, tier, simid)
@@ -70,6 +58,28 @@ def gen_list_of_simid_outputs(config, tier, simid, max_files=None):
     return patterns.output_simid_filenames(config, n_macros, tier=tier, simid=simid)
 
 
+def gen_list_of_plots_outputs(config, tier, simid):
+    if tier == "raw":
+        return [patterns.plots_file_path(config, tier=tier, simid=simid) + "/mage-event-vertices.png"]
+    else:
+        return []
+
+
+# simid independent stuff
+
+
+def collect_simconfigs(config, tiers):
+    cfgs = []
+    for tier in tiers:
+        with (
+            patterns.template_macro_dir(config, tier=tier) / "simconfig.json"
+        ).open() as f:
+            for sid, _val in json.load(f).items():
+                cfgs.append((tier, sid, get_simid_n_macros(config, tier, sid)))
+
+    return cfgs
+
+
 def gen_list_of_all_simids(config, tier):
     if tier not in ("ver", "raw"):
         tier = "raw"
@@ -81,8 +91,8 @@ def gen_list_of_all_simids(config, tier):
 
 def gen_list_of_all_macros(config, tier):
     mlist = []
-    for sid in gen_list_of_all_simids(config, tier):
-        mlist += gen_list_of_simid_inputs(config, tier=tier, simid=sid)
+    for simid in gen_list_of_all_simids(config, tier):
+        mlist += gen_list_of_simid_inputs(config, tier, simid)
 
     return mlist
 
@@ -90,19 +100,16 @@ def gen_list_of_all_macros(config, tier):
 def gen_list_of_all_simid_outputs(config, tier):
     mlist = []
     slist = gen_list_of_all_simids(config, tier)
-    for sid in slist:
-        mlist += gen_list_of_simid_outputs(config, tier=tier, simid=sid)
+    for simid in slist:
+        mlist += gen_list_of_simid_outputs(config, tier, simid)
 
     return mlist
 
 
 def gen_list_of_all_plots_outputs(config, tier):
     mlist = []
-    for sid in gen_list_of_all_simids(config, tier):
-        mlist += [
-            patterns.plots_file_path(config, tier=tier, simid=sid)
-            + "/mage-event-vertices.png"
-        ]
+    for simid in gen_list_of_all_simids(config, tier):
+        mlist += gen_list_of_plots_outputs(config, tier, simid)
 
     return mlist
 
@@ -141,15 +148,21 @@ def gen_list_of_all_tier_pdf_outputs(config):
     return mlist
 
 
-# TODO: this does not work above the hit tier
 def process_simlist_or_all(config, simlist=None):
     if simlist is None:
         simlist = utils.get_some_list(config["simlist"])
 
     mlist = []
     for line in simlist:
-        mlist += gen_list_of_simid_outputs(
-            config, tier=line.split(".")[0], simid=line.split(".")[1].rstrip()
-        )
+        tier = line.split(".")[0].strip()
+        simid = line.split(".")[1].strip()
+
+        mlist += gen_list_of_plots_outputs(config, tier, simid)
+        if tier in ("ver", "raw", "hit"):
+            mlist += gen_list_of_simid_outputs(config, tier, simid)
+        elif tier == "evt":
+            mlist += gen_list_of_tier_evt_outputs(config, simid)
+        elif tier == "pdf":
+            mlist += gen_list_of_tier_pdf_outputs(config, simid)
 
     return mlist
