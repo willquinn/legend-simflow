@@ -60,7 +60,10 @@ def gen_list_of_simid_outputs(config, tier, simid, max_files=None):
 
 def gen_list_of_plots_outputs(config, tier, simid):
     if tier == "raw":
-        return [patterns.plots_file_path(config, tier=tier, simid=simid) + "/mage-event-vertices.png"]
+        return [
+            patterns.plots_file_path(config, tier=tier, simid=simid)
+            + "/mage-event-vertices.png"
+        ]
     else:
         return []
 
@@ -139,11 +142,15 @@ def gen_list_of_all_tier_evt_outputs(config):
 # pdf tier
 
 
+def gen_list_of_tier_pdf_outputs(config, simid):
+    return [patterns.output_pdf_filename(config, simid=simid)]
+
+
 def gen_list_of_all_tier_pdf_outputs(config):
     mlist = []
     slist = gen_list_of_all_simids(config, tier="raw")
-    for sid in slist:
-        mlist += [patterns.output_pdf_filename(config, simid=sid)]
+    for simid in slist:
+        mlist += gen_list_of_tier_pdf_outputs(config, simid=simid)
 
     return mlist
 
