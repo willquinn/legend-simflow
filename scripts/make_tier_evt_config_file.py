@@ -21,4 +21,4 @@ from pathlib import Path
 # snakemake.wildcards.runid to write config to snakemake.output
 
 with Path(snakemake.output[0]).open("w") as f:
-    f.write("")
+    f.write("{}")

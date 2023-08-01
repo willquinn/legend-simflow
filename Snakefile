@@ -15,7 +15,7 @@
 
 from pathlib import Path
 
-from scripts.utils import utils, patterns, aggregate
+from scripts.utils import utils, patterns, aggregate, tier_evt
 
 if not config:
     raise RuntimeError("you must set a config file with --configfile")
@@ -201,6 +201,7 @@ rule build_tier_hit:
 
 rule make_tier_evt_config_file:
     """Uses wildcard `runid`."""
+    localrule: True
     input:
         config["paths"]["metadata"],
     output:
@@ -210,6 +211,7 @@ rule make_tier_evt_config_file:
 
 
 rule make_run_partition_file:
+    localrule: True
     input:
         Path(config["paths"]["metadata"]) / "dataprod" / "runinfo.json",
     output:
@@ -232,14 +234,16 @@ rule build_tier_evt:
         / "hardware/detectors/germanium/diodes",
     output:
         patterns.output_evt_filename(config),
+    params:
+        evt_window=lambda wildcards, input: tier_evt.smk_get_evt_window(config, wildcards, input),
     log:
         patterns.log_evtfile_path(config),
     benchmark:
-        patterns.benchmark_evtfile_path(config)
+        patterns.benchmark_evtfile_path(config),
     shadow:
         "copy-minimal"  # want the hit files to be in the shadow area
-    script:
-        "scripts/spawn_tier_evt_process.py"
+    shell:
+        patterns.run_command(config, "evt")
 
 
 rule build_tier_pdf:
