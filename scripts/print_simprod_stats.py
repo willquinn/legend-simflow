@@ -53,6 +53,6 @@ for simd in sorted(bdir.glob("*/*")):
         simd.parent.name + "." + simd.name,
         str(timedelta(seconds=int(data["wall_time"]))),
         njobs,
-        str(timedelta(seconds=int(data["wall_time"])) / njobs),
+        str(timedelta(seconds=int(data["wall_time"] / njobs))),
         f"{nprim:.2E}",
     )
