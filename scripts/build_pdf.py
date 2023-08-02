@@ -36,8 +36,6 @@ chmap = meta.channelmap("20230323T000000Z")
 if not isinstance(args.input_files, list):
     args.input_files = [args.input_files]
 
-# TODO: move build_pdf script here
-
 def process_mage_id(mage_id, chmap):
     m_id = str(mage_id)
     is_ged = bool(int(m_id[0]))
@@ -55,22 +53,9 @@ def process_mage_id(mage_id, chmap):
 
     return False
 
-# Get the tree from the file 
-file = ROOT.TFile(args.input_files[0], "READ")
-tree = file.Get('simTree')
-# Can also access wihtout tree name
-# Tobject = file.GetListOfKeys().At(0).ReadObj() # This assumes that there is only one object in the file
-
-uniq_mage_ids = list(set([mage_id for n in [list(tree.mage_id) for entry in tree] for mage_id in n]))
-mage_names = {mage_id : process_mage_id(mage_id, chmap) for mage_id in uniq_mage_ids if process_mage_id(mage_id, chmap)}
-    
-# Set up the root output file
-#if args.output_file == './':
-#    output_file = args.input_file.split('.')[0] + '_pdf.root'
-        
-out_file = uproot.create(args.output)
-
-# list of cuts
+# TODO: Do we need a config file?
+# list of cuts - this could / should be moved to a config file
+# Could also include the bins and widths
 cuts = {
     'raw': '',
     'mul': 'mage_id@.size()==1',
@@ -78,38 +63,54 @@ cuts = {
     'mul_lar': 'mage_id@.size()==1 && npe_tot==0'
 }
 
-for cut_name, cut_string in cuts.items():
-    dir = out_file.mkdir(cut_name)
+for file_name in args.input_files:
 
-    # Define the grouped histos to be updated 
-    grouped = {
-        f'{i}': ROOT.TH1D(
-                f'hist_{cut_name}_{i}',
-                f'{i} energy deposit',
-                3000, 0, 3
-            ) for i in ['bege', 'coax', 'icpc', 'ppc']
-    }
+    # Get the tree from the file 
+    file = ROOT.TFile(file_name, "READ")
+    tree = file.Get('simTree')
+    
+    uniq_mage_ids = list(set([mage_id for n in [list(tree.mage_id) for entry in tree] for mage_id in n]))
+    mage_names = {mage_id : process_mage_id(mage_id, chmap) for mage_id in uniq_mage_ids if process_mage_id(mage_id, chmap)}
 
-    # loop over the channels
-    for mage_id, mg_dict in mage_names.items():
-        if cut_string == '': 
-            string = f'mage_id=={mage_id}'
-        else:
-            string = f'mage_id=={mage_id} && {cut_string}'
-            
-        hist = ROOT.TH1D(f'hist_{cut_name}_{mg_dict["ch"]}', f'{mg_dict["name"]} energy deposit', 3000, 0, 3) # units of MeV and bin width of 1keV
-        tree.Project(hist.GetName(), 'energy', string) # add cut
+    out_file_name = file_name.split('/')[-1].split(".")[0] + '_pdf' + '.root'   
+    out_file = uproot.create(args.output + out_file_name)
+
+    for cut_name, cut_string in cuts.items():
+        dir = out_file.mkdir(cut_name)
+
+        # Define the grouped histos to be updated 
+        geds_dict = {
+            f'{i}': ROOT.TH1D(
+                    f'type_{i}',
+                    f'All {i} energy deposit',
+                    3000, 0, 3
+                ) for i in ['bege', 'coax', 'icpc', 'ppc']
+        }
+
+        # loop over the channels
+        for mage_id, mg_dict in mage_names.items():
+            if cut_string == '': 
+                string = f'mage_id=={mage_id}'
+            else:
+                string = f'mage_id=={mage_id} && {cut_string}'
+
+            hist = ROOT.TH1D(f'ch{mg_dict["ch"]}', f'{mg_dict["name"]} energy deposit', 3000, 0, 3) # units of MeV and bin width of 1keV
+            tree.Project(hist.GetName(), 'energy', string) # add cut
+            dir[hist.GetName()] = hist
+
+            geds_dict[chmap[mg_dict["name"]]['type']].Add(hist)
+
+            del hist
+
+        for ged_type, hist in geds_dict.items():
+            dir[hist.GetName()] = hist 
+        del geds_dict
+
+        # Then finally ALL
+        hist = ROOT.TH1D(f'all', 'All channels energy deposit', 3000, 0, 3) # units of MeV and bin width of 1keV
+        tree.Project(hist.GetName(), 'energy', cut_string) # add cut
         dir[hist.GetName()] = hist
+        del hist
 
-        tree.Project(grouped[chmap[mg_dict["name"]]['type']].GetName(), 'energy', string)
-
-    for ged_type, hist in grouped.items():
-       dir[hist.GetName()] = hist 
-
-    # Then finally ALL
-    hist = ROOT.TH1D(f'hist_{cut_name}_all', 'All channels energy deposit', 3000, 0, 3) # units of MeV and bin width of 1keV
-    tree.Project(hist.GetName(), 'energy', cut_string) # add cut
-    dir[hist.GetName()] = hist
-
-out_file.close()
-file.Close()
+    out_file.close()
+    file.Close()
