@@ -162,25 +162,6 @@ rule build_tier_raw:
         patterns.run_command(config, "raw")
 
 
-for tier, simid, _ in simconfigs:
-
-    rule:
-        """Produces plots for the primary event vertices."""
-        input:
-            aggregate.gen_list_of_simid_outputs(config, tier, simid, max_files=5),
-        output:
-            Path(patterns.plots_file_path(config, tier=tier, simid=simid))
-            / "mage-event-vertices.png",
-        priority: 100
-        shell:
-            (
-                " ".join(config["execenv"])
-                + " python "
-                + workflow.source_path("scripts/plot_mage_vertices.py")
-                + " -b -o {output} {input}"
-            )
-
-
 rule build_tier_hit:
     """Produces a 'hit' tier file starting from a single 'raw' tier file."""
     message:
@@ -264,25 +245,4 @@ rule build_tier_pdf:
         patterns.run_command(config, "pdf")
 
 
-rule print_stats:
-    """Prints a table with summary runtime information for each `simid`.
-    No wildcards are used.
-    """
-    script:
-        "scripts/print_simprod_stats.py"
-
-
-rule print_benchmark_stats:
-    """Prints a table with summary runtime information of a benchmarking run.
-    No wildcards are used.
-    """
-    script:
-        "scripts/print_benchmark_stats.py"
-
-
-rule inspect_simjob_logs:
-    """Reports any warning from the simulation job logs."""
-    params:
-        logdir=config["paths"]["log"],
-    script:
-        "scripts/inspect_MaGe_logs.sh"
+include: "rules/aux.smk"
