@@ -11,7 +11,7 @@
 # details.
 #
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <https:#www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """Prepare pattern strings to be used in Snakemake rules.
 
@@ -46,7 +46,9 @@ def run_command(config, tier):
 def log_file_path(config, **kwargs):
     """Formats a log file path for a `simid` and `jobid`."""
     pat = str(
-        Path(config["paths"]["log"]) / "{tier}" / (simjob_rel_basename() + ".log")
+        Path(config["paths"]["log"])
+        / "{tier}"
+        / (simjob_rel_basename() + "-tier_{tier}.log")
     )
     return expand(pat, **kwargs, allow_missing=True)[0]
 
@@ -56,7 +58,7 @@ def benchmark_file_path(config, **kwargs):
     pat = str(
         Path(config["paths"]["benchmarks"])
         / "{tier}"
-        / (simjob_rel_basename() + ".tsv")
+        / (simjob_rel_basename() + "-tier_{tier}.tsv")
     )
     return expand(pat, **kwargs, allow_missing=True)[0]
 
@@ -74,7 +76,7 @@ def genmacro_log_file_path(config, **kwargs):
             Path(config["paths"]["log"])
             / "macros"
             / "{tier}"
-            / (simjob_rel_basename() + ".log")
+            / (simjob_rel_basename() + "-tier_{tier}.log")
         ),
         **kwargs,
         allow_missing=True,
@@ -118,11 +120,8 @@ def input_simjob_filename(config, **kwargs):
         msg = "the 'tier' argument is mandatory"
         raise RuntimeError(msg)
 
-    expr = str(
-        Path(config["paths"]["macros"])
-        / f"{tier}"
-        / (simjob_rel_basename() + config["filetypes"]["input"][tier])
-    )
+    fname = simjob_rel_basename() + f"-tier_{tier}" + config["filetypes"]["input"][tier]
+    expr = str(Path(config["paths"]["macros"]) / f"{tier}" / fname)
     return expand(expr, **kwargs, allow_missing=True)[0]
 
 
@@ -134,10 +133,10 @@ def output_simjob_filename(config, **kwargs):
         msg = "the 'tier' argument is mandatory"
         raise RuntimeError(msg)
 
-    expr = str(
-        Path(config["paths"][f"tier_{tier}"])
-        / (simjob_rel_basename() + config["filetypes"]["output"][tier])
+    fname = (
+        simjob_rel_basename() + f"-tier_{tier}" + config["filetypes"]["output"][tier]
     )
+    expr = str(Path(config["paths"][f"tier_{tier}"]) / fname)
     return expand(expr, **kwargs, allow_missing=True)[0]
 
 
@@ -175,7 +174,7 @@ def smk_ver_filename_for_raw(config, wildcards):
 
 
 def evtfile_rel_basename(**kwargs):
-    return expand("{simid}/{simid}_{runid}", **kwargs, allow_missing=True)[0]
+    return expand("{simid}/{simid}_{runid}-tier_evt", **kwargs, allow_missing=True)[0]
 
 
 def output_evt_filename(config, **kwargs):
@@ -202,7 +201,7 @@ def benchmark_evtfile_path(config, **kwargs):
 
 
 def pdffile_rel_basename(**kwargs):
-    return expand("{simid}/{simid}", **kwargs, allow_missing=True)[0]
+    return expand("{simid}/{simid}-tier_pdf", **kwargs, allow_missing=True)[0]
 
 
 def output_pdf_filename(config, **kwargs):

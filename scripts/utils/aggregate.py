@@ -11,7 +11,7 @@
 # details.
 #
 # You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <https:#www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
@@ -62,7 +62,7 @@ def gen_list_of_plots_outputs(config, tier, simid):
     if tier == "raw":
         return [
             patterns.plots_file_path(config, tier=tier, simid=simid)
-            + "/mage-event-vertices.png"
+            + "/mage-event-vertices-tier_raw.png"
         ]
     else:
         return []
