@@ -192,7 +192,7 @@ rule make_tier_evt_config_file:
 
 
 rule make_run_partition_file:
-    """Uses wildcard `simid` and `runid`."""
+    """Uses wildcard `simid`."""
     localrule: True
     input:
         hit_files=lambda wildcards: aggregate.gen_list_of_simid_outputs(
@@ -200,7 +200,7 @@ rule make_run_partition_file:
         ),
         runinfo=Path(config["paths"]["metadata"]) / "dataprod" / "runinfo.json",
     output:
-        Path(config["paths"]["genconfig"]) / "run-partition.{simid}.{runid}.json",
+        Path(config["paths"]["genconfig"]) / "run-partition.{simid}.json",
     script:
         "scripts/make_run_partition_file.py"
 

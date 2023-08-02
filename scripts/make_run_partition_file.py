@@ -30,6 +30,10 @@ spec = [r.split(".") for r in runs]
 livetimes = [rinfo[p[0]][p[1]][p[2]]["livetime_in_s"] for p in spec]
 
 # get total number of mc events from hit files
+print(
+    "INFO: computing total number of MC events for simulation "
+    + snakemake.wildcards.simid
+)
 file_evts = uproot.num_entries(
     [f"{file}:simTree" for file in snakemake.input.hit_files]
 )

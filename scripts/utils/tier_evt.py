@@ -19,26 +19,17 @@ import json
 from collections import OrderedDict
 from pathlib import Path
 
-import uproot
-
 
 def smk_get_evt_window(wildcards, input):
     # open file with run livetime partitioning
     with Path(input.run_part_file[0]).open() as f:
         runpart = json.load(f, object_pairs_hook=OrderedDict)
 
-    # get total number of mc events
-    file_evts = uproot.num_entries([f"{file}:simTree" for file in input.hit_files])
-
-    tot_events = 0
-    for file in file_evts:
-        tot_events += file[-1]
-
     runs = list(runpart.keys())
-    weights = [tot_events * v for v in runpart.values()]
+    weights = list(runpart.values())
 
     # compute start event and number of events for this run
     start_event = sum(weights[: runs.index(wildcards.runid)])
-    n_events = tot_events * runpart[wildcards.runid]
+    n_events = runpart[wildcards.runid]
 
     return (int(start_event), int(n_events))
