@@ -18,9 +18,10 @@
 import json
 from pathlib import Path
 
+import uproot
 from utils import utils
 
-with Path(snakemake.input[0]).open() as f:
+with Path(snakemake.input.runinfo).open() as f:
     rinfo = json.load(f)
 
 # retrieve run livetimes
@@ -28,6 +29,18 @@ runs = utils.get_some_list(list(set(snakemake.config["runlist"])))
 spec = [r.split(".") for r in runs]
 livetimes = [rinfo[p[0]][p[1]][p[2]]["livetime_in_s"] for p in spec]
 
+# get total number of mc events from hit files
+file_evts = uproot.num_entries(
+    [f"{file}:simTree" for file in snakemake.input.hit_files]
+)
+tot_events = 0
+for file in file_evts:
+    tot_events += file[-1]
+
 # write json file with weights for each run
 with Path(snakemake.output[0]).open("w") as f:
-    json.dump(dict(zip(runs, [t / sum(livetimes) for t in livetimes])), f, indent=2)
+    json.dump(
+        dict(zip(runs, [int(tot_events * t / sum(livetimes)) for t in livetimes])),
+        f,
+        indent=2,
+    )

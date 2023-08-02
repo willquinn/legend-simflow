@@ -192,11 +192,15 @@ rule make_tier_evt_config_file:
 
 
 rule make_run_partition_file:
+    """Uses wildcard `runid`."""
     localrule: True
     input:
-        Path(config["paths"]["metadata"]) / "dataprod" / "runinfo.json",
+        hit_files=lambda wildcards: aggregate.gen_list_of_simid_outputs(
+            config, tier="hit", simid=wildcards.simid
+        ),
+        runinfo=Path(config["paths"]["metadata"]) / "dataprod" / "runinfo.json",
     output:
-        Path(config["paths"]["genconfig"]) / "run-partition.json",
+        Path(config["paths"]["genconfig"]) / "run-partition.{runid}.json",
     script:
         "scripts/make_run_partition_file.py"
 
