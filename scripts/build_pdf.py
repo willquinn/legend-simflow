@@ -18,10 +18,10 @@
 from __future__ import annotations
 
 import argparse
+import json
 
 import ROOT
 import uproot
-import json
 from legendmeta import LegendMetadata
 
 parser = argparse.ArgumentParser(
@@ -41,6 +41,7 @@ if not isinstance(args.input_files, list):
 
 rconfig = json.load(open("build_pdf_config.json"))
 
+
 def process_mage_id(mage_id):
     m_id = str(mage_id)
     is_ged = bool(int(m_id[0]))
@@ -53,14 +54,18 @@ def process_mage_id(mage_id):
     for key, value in chmap.items():
         if isinstance(value, dict) and "location" in value:
             location = value["location"]
-            usable = value['analysis']["usability"]=='on' 
-            if location.get("string") == string and location.get("position") == pos and usable:
+            usable = value["analysis"]["usability"] == "on"
+            if (
+                location.get("string") == string
+                and location.get("position") == pos
+                and usable
+            ):
                 return {"name": key, "ch": value["daq"]["rawid"], "mage_id": mage_id}
 
     return False
 
-for file_name in args.input_files:
 
+for file_name in args.input_files:
     # Get the tree from the file
     file = ROOT.TFile(file_name, "READ")
     tree = file.Get("simTree")
@@ -79,22 +84,33 @@ for file_name in args.input_files:
     hists = {
         f"{cut_name}": {
             _mage_id: ROOT.TH1F(
-                    f"{cut_name}_{_mage_names['ch']}", f"{_mage_names['name']} energy deposition",
-                    rconfig['hist']['nbins'], rconfig['hist']['emin'], rconfig['hist']['emax']
-                ) for _mage_id, _mage_names in mage_names.items()
-        } for cut_name in rconfig["cuts"].keys()
+                f"{cut_name}_{_mage_names['ch']}",
+                f"{_mage_names['name']} energy deposition",
+                rconfig["hist"]["nbins"],
+                rconfig["hist"]["emin"],
+                rconfig["hist"]["emax"],
+            )
+            for _mage_id, _mage_names in mage_names.items()
+        }
+        for cut_name in rconfig["cuts"]
     }
     # Add the grouped dets hists
-    for cut_name in rconfig["cuts"].keys():
+    for cut_name in rconfig["cuts"]:
         for _type in ["bege", "coax", "icpc", "ppc"]:
-            hists[cut_name][f"{_type}"] = ROOT.TH1F( 
-                f"{cut_name}_type_{_type}", f"All {_type} energy deposit",
-                    rconfig['hist']['nbins'], rconfig['hist']['emin'], rconfig['hist']['emax']
-            ) 
-        hists[cut_name]['all'] = ROOT.TH1F( 
-            f"{cut_name}_type_all", f"All energy deposit",
-            rconfig['hist']['nbins'], rconfig['hist']['emin'], rconfig['hist']['emax']
-        ) 
+            hists[cut_name][f"{_type}"] = ROOT.TH1F(
+                f"{cut_name}_type_{_type}",
+                f"All {_type} energy deposit",
+                rconfig["hist"]["nbins"],
+                rconfig["hist"]["emin"],
+                rconfig["hist"]["emax"],
+            )
+        hists[cut_name]["all"] = ROOT.TH1F(
+            f"{cut_name}_type_all",
+            "All energy deposit",
+            rconfig["hist"]["nbins"],
+            rconfig["hist"]["emin"],
+            rconfig["hist"]["emax"],
+        )
 
     out_file_name = file_name.split("/")[-1].split(".")[0] + "_pdf" + ".root"
     out_file = uproot.recreate(args.output + out_file_name)
@@ -102,32 +118,40 @@ for file_name in args.input_files:
     # Loop over the data ONCE and fill as we go along
     for entry in tree:
         # In the real data we have an energy threshold defined in the config
-        energy_list  = [val for val in entry.energy if val >= rconfig['energy_threshold']]
-        mage_id_list = [val for index, val in enumerate(entry.mage_id) if entry.energy[index] >= rconfig['energy_threshold']]
+        energy_list = [
+            val for val in entry.energy if val >= rconfig["energy_threshold"]
+        ]
+        mage_id_list = [
+            val
+            for index, val in enumerate(entry.mage_id)
+            if entry.energy[index] >= rconfig["energy_threshold"]
+        ]
         npe_tot = entry.npe_tot
-        if len(energy_list) == 0: continue  # Nothing to fill
+        if len(energy_list) == 0:
+            continue  # Nothing to fill
 
         for cut_name, cut_string in rconfig["cuts"].items():
-
             # In the config is a lambda function string that returns true or false for each cut
             # Maybe this is too much but it allows for more cuts possibly
             exec(cut_string)
             pass_cut = func(energy_list, mage_id_list, npe_tot)
-            if not bool(pass_cut): continue
+            if not bool(pass_cut):
+                continue
 
             for mage_id, energy in zip(mage_id_list, energy_list):
                 energy_kev = energy * 1000
                 mage_dict = process_mage_id(mage_id)
 
-                if mage_dict == False: continue # not an 'on' detector so we don't fill
+                if mage_dict is False:
+                    continue  # not an 'on' detector so we don't fill
                 hists[cut_name][mage_id].Fill(energy_kev)
                 hists[cut_name][chmap[mage_dict["name"]]["type"]].Fill(energy_kev)
-                hists[cut_name]['all'].Fill(energy_kev)
+                hists[cut_name]["all"].Fill(energy_kev)
 
     # Create a new root file with the directories
-    for cut_name in rconfig["cuts"].keys():
+    for cut_name in rconfig["cuts"]:
         dir = out_file.mkdir(cut_name)
-        for key, item in hists[cut_name].items():
+        for _key, item in hists[cut_name].items():
             dir[item.GetName()] = item
 
     out_file.close()

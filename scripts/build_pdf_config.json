@@ -1,15 +1,15 @@
 {
-    "energy_threshold": 0.025,
-    "hist": {
-        "nbins": 3000,
-        "bin_width": 1,
-        "emin": 0,
-        "emax": 3000
-    },
-    "cuts": {
-        "raw":      "func = lambda energy_list, mage_id_list, npe_tot: True",
-        "mul":      "func = lambda energy_list, mage_id_list, npe_tot: len(energy_list)==1",
-        "lar":      "func = lambda energy_list, mage_id_list, npe_tot: npe_tot == 0",
-        "mul_lar" : "func = lambda energy_list, mage_id_list, npe_tot: npe_tot == 0 and len(energy_list)==1"
-    }
+  "energy_threshold": 0.025,
+  "hist": {
+    "nbins": 3000,
+    "bin_width": 1,
+    "emin": 0,
+    "emax": 3000
+  },
+  "cuts": {
+    "raw": "func = lambda energy_list, mage_id_list, npe_tot: True",
+    "mul": "func = lambda energy_list, mage_id_list, npe_tot: len(energy_list)==1",
+    "lar": "func = lambda energy_list, mage_id_list, npe_tot: npe_tot == 0",
+    "mul_lar": "func = lambda energy_list, mage_id_list, npe_tot: npe_tot == 0 and len(energy_list)==1"
+  }
 }
