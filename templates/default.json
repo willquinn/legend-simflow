@@ -53,9 +53,9 @@
   "runcmd": {
     "ver": "$_/workflow/scripts/MaGe.sh {input.macro} {log}",
     "raw": "$_/workflow/scripts/MaGe.sh {input.macro} {log}",
-    "hit": "process_L200_hit.py -o {output} -- {input}",
-    "evt": "process_L200_evt.py -o {output} -c {input.config_file} -d {input.hpge_db} -s {params.evt_window[0]} -n {params.evt_window[1]} -- {input.hit_files}",
-    "pdf": "$_/workflow/scripts/build_pdf.py -m $_/inputs -o {output} -- {input}"
+    "hit": "process_L200_hit.py -o {output} -- {input} &> {log}",
+    "evt": "process_L200_evt.py -o {output} -c {input.config_file} -d {input.hpge_db} -s {params.evt_window[0]} -n {params.evt_window[1]} -- {input.hit_files} &> {log}",
+    "pdf": "$_/workflow/scripts/build_pdf.py -m $_/inputs -o {output} -- {input} &> {log}"
   },
   "execenv": [
     "shifter",
