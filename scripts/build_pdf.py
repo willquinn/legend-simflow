@@ -89,7 +89,7 @@ for file_name in args.input_files:
 
         # Define the grouped histos to be updated
         geds_dict = {
-            f"{i}": ROOT.TH1D(f"type_{i}", f"All {i} energy deposit", 3000, 0, 3)
+            f"{i}": ROOT.TH1D(f"type_{i}", f"All {i} energy deposit", 3000, 0, 3000)
             for i in ["bege", "coax", "icpc", "ppc"]
         }
 
@@ -101,9 +101,9 @@ for file_name in args.input_files:
                 string = f"mage_id=={mage_id} && {cut_string}"
 
             hist = ROOT.TH1D(
-                f'ch{mg_dict["ch"]}', f'{mg_dict["name"]} energy deposit', 3000, 0, 3
-            )  # units of MeV and bin width of 1keV
-            tree.Project(hist.GetName(), "energy", string)  # add cut
+                f'ch{mg_dict["ch"]}', f'{mg_dict["name"]} energy deposit', 3000, 0, 3000
+            )  # units of keV and bin width of 1keV
+            tree.Project(hist.GetName(), "energy * 1000", string)  # add cut
             dir[hist.GetName()] = hist
 
             geds_dict[chmap[mg_dict["name"]]["type"]].Add(hist)
@@ -116,9 +116,9 @@ for file_name in args.input_files:
 
         # Then finally ALL
         hist = ROOT.TH1D(
-            "all", "All channels energy deposit", 3000, 0, 3
-        )  # units of MeV and bin width of 1keV
-        tree.Project(hist.GetName(), "energy", cut_string)  # add cut
+            "all", "All channels energy deposit", 3000, 0, 3000
+        )  # units of keV and bin width of 1keV
+        tree.Project(hist.GetName(), "energy * 1000", cut_string)  # add cut
         dir[hist.GetName()] = hist
         del hist
 
