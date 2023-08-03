@@ -109,6 +109,13 @@ rule build_tier_ver:
     """Run a single simulation job for the 'ver' tier.
     Uses wildcards `simid` and `jobid`.
 
+    Note
+    ----
+    The Snakemake shadow functionality is enabled in order to write the output
+    file in the shadow area (i.e. scratch area) and then move it to
+    destination.  This works only if the output directory specified in the
+    config file is a *relative* path.
+
     Warning
     -------
     The macro file is marked as "ancient" as a workaround to the fact that
@@ -137,6 +144,13 @@ rule build_tier_raw:
     """Run a single simulation job for the 'raw' tier.
     Uses wildcards `simid` and `jobid`.
 
+    Note
+    ----
+    The Snakemake shadow functionality is enabled in order to write the output
+    file in the shadow area (i.e. scratch area) and then move it to
+    destination.  This works only if the output directory specified in the
+    config file is a *relative* path.
+
     Warning
     -------
     The macro file is marked as "ancient" as a workaround to the fact that
@@ -163,7 +177,15 @@ rule build_tier_raw:
 
 
 rule build_tier_hit:
-    """Produces a 'hit' tier file starting from a single 'raw' tier file."""
+    """Produces a 'hit' tier file starting from a single 'raw' tier file.
+
+    Note
+    ----
+    The Snakemake shadow functionality is enabled in order to write the output
+    file in the shadow area (i.e. scratch area) and then move it to
+    destination.  This works only if the output directory specified in the
+    config file is a *relative* path.
+    """
     message:
         "Producing output file for job 'hit.{wildcards.simid}.{wildcards.jobid}'"
     input:
@@ -181,7 +203,8 @@ rule build_tier_hit:
 
 
 rule make_tier_evt_config_file:
-    """Uses wildcard `runid`."""
+    """Generates configuration files for `build_tier_evt` based on metadata.
+    Uses wildcard `runid`."""
     localrule: True
     input:
         config["paths"]["metadata"],
@@ -192,7 +215,8 @@ rule make_tier_evt_config_file:
 
 
 rule make_run_partition_file:
-    """Uses wildcard `simid`."""
+    """Computes and stores on disk rules for partitioning the simulated event
+    statistics according to data taking runs. Uses wildcard `simid`."""
     localrule: True
     input:
         hit_files=lambda wildcards: aggregate.gen_list_of_simid_outputs(
@@ -227,8 +251,6 @@ rule build_tier_evt:
         patterns.log_evtfile_path(config),
     benchmark:
         patterns.benchmark_evtfile_path(config)
-    shadow:
-        "copy-minimal"  # want the hit files to be in the shadow area
     shell:
         patterns.run_command(config, "evt")
 
