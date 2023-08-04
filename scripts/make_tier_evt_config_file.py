@@ -25,6 +25,7 @@ src = (
     / "simprod"
     / "config"
     / "tier"
+    / snakemake.config["experiment"]
     / "evt"
     / f"{snakemake.wildcards.runid}-build_evt.json"
 )
