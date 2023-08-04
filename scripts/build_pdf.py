@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from pathlib import Path
 
 import ROOT
 import uproot
@@ -114,8 +115,7 @@ for file_name in args.input_files:
             rconfig["hist"]["emax"],
         )
 
-    out_file_name = file_name.split("/")[-1].split(".")[0] + "_pdf" + ".root"
-    out_file = uproot.recreate(args.output + out_file_name)
+    out_file = uproot.recreate(args.output)
 
     # Loop over the data ONCE and fill as we go along
     for entry in tree:
