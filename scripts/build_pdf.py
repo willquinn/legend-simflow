@@ -24,23 +24,6 @@ import ROOT
 import uproot
 from legendmeta import LegendMetadata
 
-parser = argparse.ArgumentParser(
-    prog="build_pdf", description="build LEGEND pdf files from evt tier files"
-)
-parser.add_argument("--output", "-o", help="output file name")
-parser.add_argument("--metadata", "-m", help="path to legend-metadata")
-parser.add_argument("input_files", nargs="+", help="evt tier files")
-
-args = parser.parse_args()
-
-meta = LegendMetadata(args.metadata)
-chmap = meta.channelmap("20230323T000000Z")
-
-if not isinstance(args.input_files, list):
-    args.input_files = [args.input_files]
-
-rconfig = json.load(open("build_pdf_config.json"))
-
 
 def process_mage_id(mage_id):
     m_id = str(mage_id)
@@ -64,6 +47,25 @@ def process_mage_id(mage_id):
 
     return False
 
+
+parser = argparse.ArgumentParser(
+    prog="build_pdf", description="build LEGEND pdf files from evt tier files"
+)
+parser.add_argument("--config", "-c", help="configuration file")
+parser.add_argument("--output", "-o", help="output file name")
+parser.add_argument("--metadata", "-m", help="path to legend-metadata")
+parser.add_argument("input_files", nargs="+", help="evt tier files")
+
+args = parser.parse_args()
+
+meta = LegendMetadata(args.metadata)
+chmap = meta.channelmap("20230323T000000Z")
+
+if not isinstance(args.input_files, list):
+    args.input_files = [args.input_files]
+
+with Path(args.config).open() as f:
+    rconfig = json.load(f)
 
 for file_name in args.input_files:
     # Get the tree from the file
