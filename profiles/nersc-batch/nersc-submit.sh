@@ -4,6 +4,7 @@
 # mamba activate snakemake
 
 cd "$1" || exit 1
+version=$(basename "$1")
 
 rm -rf .snakemake
 
@@ -17,7 +18,7 @@ with open("inputs/simprod/config/tier/raw/l200a/simconfig.json") as f:
     simids = json.load(f).keys()
 
 for s in simids:
-    print(f"raw.{s}", end=" ")
+    print(f"pdf.{s}", end=" ")
 ')
 
 for s in $simids; do
@@ -33,7 +34,7 @@ for s in $simids; do
         --time 12:00:00 \
         --qos regular \
         --licenses scratch,cfs \
-        --job-name "$s" \
+        --job-name "$version-$s" \
         --output "$logdir/$s.log" \
         --error "$logdir/$s.log" \
         --wrap "

@@ -194,9 +194,9 @@ rule build_tier_hit:
         "Producing output file for job 'hit.{wildcards.simid}.{wildcards.jobid}'"
     input:
         raw_file=rules.build_tier_raw.output,
-        optmap_lar=config["optical_maps"]["lar"],
-        optmap_pen=config["optical_maps"]["pen"],
-        optmap_fiber=config["optical_maps"]["fiber"],
+        optmap_lar=config["paths"]["optical_maps"]["lar"],
+        optmap_pen=config["paths"]["optical_maps"]["pen"],
+        optmap_fiber=config["paths"]["optical_maps"]["fiber"],
     output:
         patterns.output_simjob_filename(config, tier="hit"),
     log:
