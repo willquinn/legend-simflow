@@ -36,7 +36,12 @@
     "benchmarks": "$_/generated/benchmarks",
     "src": "$_/software/python/src",
     "install": "$_/software/python/install",
-    "cache": "$_/software/python/cache"
+    "cache": "$_/software/python/cache",
+    "optical_maps": {
+      "lar": "$_/inputs/simprod/l200a-optical-map-lar.root",
+      "pen": "$_/inputs/simprod/l200a-optical-map-pen.root",
+      "fiber": "$_/inputs/simprod/l200a-optical-map-fiber.root"
+    }
   },
   "filetypes": {
     "input": {
@@ -57,9 +62,9 @@
   "runcmd": {
     "ver": "$_/workflow/scripts/MaGe.sh {input.macro} {log}",
     "raw": "$_/workflow/scripts/MaGe.sh {input.macro} {log}",
-    "hit": "process_L200_hit.py -o {output} -- {input} &> {log}",
+    "hit": "process_L200_hit.py --laroptmap {input.optmap_lar} --penoptmap {input.optmap_pen} --fiberoptmap {input.optmap_fiber} -o {output} -- {input.raw_file} &> {log}",
     "evt": "process_L200_evt.py -o {output} -c {input.config_file} -d {input.hpge_db} -s {params.evt_window[0]} -n {params.evt_window[1]} -- {input.hit_files} &> {log}",
-    "pdf": "$_/workflow/scripts/build_pdf.py -c {input.config_file} -m $_/inputs -o {output} -- {input.evt_files} &> {log}"
+    "pdf": "python $_/workflow/scripts/build_pdf.py -c {input.config_file} -m $_/inputs -o {output} -- {input.evt_files} &> {log}"
   },
   "execenv": [
     "shifter",
