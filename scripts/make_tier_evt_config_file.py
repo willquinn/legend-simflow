@@ -15,10 +15,19 @@
 
 # ruff: noqa: F821, T201
 
+import os
 from pathlib import Path
 
-# TODO: use files in snakemake.input corresponding to run
-# snakemake.wildcards.runid to write config to snakemake.output
+# TODO: generate the files from metadata inplace here
 
-with Path(snakemake.output[0]).open("w") as f:
-    f.write("{}")
+src = (
+    Path(snakemake.input[0])
+    / "simprod"
+    / "config"
+    / "tier"
+    / "evt"
+    / f"{snakemake.wildcards.runid}-build_evt.json"
+)
+dest = Path(snakemake.output[0])
+
+os.system(f"cp {src} {dest}")
