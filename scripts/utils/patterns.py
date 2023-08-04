@@ -204,6 +204,10 @@ def pdffile_rel_basename(**kwargs):
     return expand("{simid}/{simid}-tier_pdf", **kwargs, allow_missing=True)[0]
 
 
+def pdf_config_path(config):
+    return template_macro_dir(config, tier="pdf") / "build-pdf-config.json"
+
+
 def output_pdf_filename(config, **kwargs):
     expr = str(
         Path(config["paths"]["tier_pdf"])

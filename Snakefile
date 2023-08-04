@@ -260,9 +260,10 @@ rule build_tier_pdf:
     message:
         "Producing output file for job 'pdf.{wildcards.simid}'"
     input:
-        lambda wildcards: aggregate.gen_list_of_all_tier_evt_outputs(
+        evt_files=lambda wildcards: aggregate.gen_list_of_all_tier_evt_outputs(
             config, wildcards.simid
         ),
+        config_file=patterns.pdf_config_path(config),
     output:
         patterns.output_pdf_filename(config),
     log:
