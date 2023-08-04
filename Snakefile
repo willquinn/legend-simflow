@@ -29,7 +29,7 @@ wildcard_constraints:
     tier="\w+",
     simid="[-\w]+",
     jobid="\d+",
-    runid="[.\w]+",
+    runid="[-\w]+",
 
 
 def gen_target_all():
@@ -209,7 +209,7 @@ rule make_tier_evt_config_file:
     input:
         config["paths"]["metadata"],
     output:
-        Path(config["paths"]["genconfig"]) / "mpp-config.{runid}.json",
+        Path(config["paths"]["genconfig"]) / "{runid}-build_evt.json",
     script:
         "scripts/make_tier_evt_config_file.py"
 
@@ -224,7 +224,7 @@ rule make_run_partition_file:
         ),
         runinfo=Path(config["paths"]["metadata"]) / "dataprod" / "runinfo.json",
     output:
-        Path(config["paths"]["genconfig"]) / "run-partition.{simid}.json",
+        Path(config["paths"]["genconfig"]) / "{simid}-run_partition.json",
     script:
         "scripts/make_run_partition_file.py"
 

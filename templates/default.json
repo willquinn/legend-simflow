@@ -2,12 +2,16 @@
   "experiment": "l200a",
   "simlist": "all",
   "runlist": [
-    "phy.p03.r000",
-    "phy.p03.r001",
-    "phy.p03.r002",
-    "phy.p03.r003",
-    "phy.p03.r005",
-    "phy.p03.r004"
+    "phy-p03-r000",
+    "phy-p03-r001",
+    "phy-p03-r002",
+    "phy-p03-r003",
+    "phy-p03-r004",
+    "phy-p03-r005",
+    "phy-p04-r000",
+    "phy-p04-r001",
+    "phy-p04-r002",
+    "phy-p04-r003"
   ],
   "benchmark": {
     "enabled": false,
