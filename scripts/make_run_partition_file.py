@@ -26,8 +26,8 @@ with Path(snakemake.input.runinfo).open() as f:
 
 # retrieve run livetimes
 runs = utils.get_some_list(list(set(snakemake.config["runlist"])))
-spec = [r.split(".") for r in runs]
-livetimes = [rinfo[p[0]][p[1]][p[2]]["livetime_in_s"] for p in spec]
+spec = [r.split("-") for r in runs]
+livetimes = [rinfo[p[1]][p[2]][p[3]]["livetime_in_s"] for p in spec]
 
 # get total number of mc events from hit files
 print(
