@@ -25,8 +25,8 @@ src = (
     / "simprod"
     / "config"
     / "tier"
-    / snakemake.config["experiment"]
     / "evt"
+    / snakemake.config["experiment"]
     / f"{snakemake.wildcards.runid}-build_evt.json"
 )
 dest = Path(snakemake.output[0])
