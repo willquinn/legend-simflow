@@ -32,21 +32,6 @@ wildcard_constraints:
     runid="[-\w]+",
 
 
-def gen_target_all():
-    if config.get("simlist", "*") in ("all", "*"):
-        return (
-            aggregate.gen_list_of_all_simid_outputs(config, tier="hit"),
-            aggregate.gen_list_of_all_plots_outputs(config, tier="raw"),
-        )
-    else:
-        return aggregate.process_simlist_or_all(config)
-
-
-rule all:
-    input:
-        gen_target_all(),
-
-
 rule gen_all_macros:
     """Aggregate and produce all the macro files."""
     input:
@@ -77,6 +62,25 @@ rule gen_all_tier_pdf:
     """Aggregate and produce all the 'pdf' tier files."""
     input:
         aggregate.gen_list_of_all_tier_pdf_outputs(config),
+
+
+def gen_target_all():
+    if config.get("simlist", "*") in ("all", "*"):
+        return (
+            rules.gen_all_tier_pdf.input,
+            [
+                aggregate.gen_list_of_all_plots_outputs(config, tier=t)
+                for t in ("ver", "raw")
+            ],
+        )
+    else:
+        return aggregate.process_simlist(config)
+
+
+rule all:
+    default_target: True
+    input:
+        gen_target_all(),
 
 
 # since the number of generated macros for the 'output' field

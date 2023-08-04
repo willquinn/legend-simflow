@@ -155,7 +155,7 @@ def gen_list_of_all_tier_pdf_outputs(config):
     return mlist
 
 
-def process_simlist_or_all(config, simlist=None):
+def process_simlist(config, simlist=None):
     if simlist is None:
         simlist = utils.get_some_list(config["simlist"])
 
