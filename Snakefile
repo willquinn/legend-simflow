@@ -295,7 +295,7 @@ rule gen_pdf_release:
         r"""
         tar --create --xz \
             --file {output} \
-            --transform 's|.*/\({params.exp}-.*-tier_raw\..*\)|{params.exp}-pdfs/\1|g' \
+            --transform 's|.*/\({params.exp}-.*-tier_pdf\..*\)|{params.exp}-pdfs/\1|g' \
             {input}
         """
 
