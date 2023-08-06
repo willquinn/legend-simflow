@@ -29,6 +29,7 @@
     "tier_hit": "./generated/tier/hit",
     "tier_evt": "$_/generated/tier/evt",
     "tier_pdf": "$_/generated/tier/pdf",
+    "pdf_releases": "$_/generated/releases",
     "genconfig": "$_/generated/config",
     "macros": "$_/generated/macros",
     "plots": "$_/generated/plots",

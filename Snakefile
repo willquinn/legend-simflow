@@ -281,4 +281,23 @@ rule build_tier_pdf:
         patterns.run_command(config, "pdf")
 
 
+rule gen_pdf_release:
+    """Generates a tarball with all the pdf files."""
+    message:
+        "Generating pdf release"
+    input:
+        aggregate.gen_list_of_all_tier_pdf_outputs(config),
+    output:
+        Path(config["paths"]["pdf_releases"]) / (config["experiment"] + "-pdfs.tar.xz"),
+    params:
+        exp=config["experiment"],
+    shell:
+        r"""
+        tar --create --xz \
+            --file {output} \
+            --transform 's|.*/\({params.exp}-.*-tier_raw\..*\)|{params.exp}-pdfs/\1|g' \
+            {input}
+        """
+
+
 include: "rules/aux.smk"
