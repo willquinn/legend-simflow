@@ -36,21 +36,24 @@ rule print_stats:
     """Prints a table with summary runtime information for each `simid`.
     No wildcards are used.
     """
+    localrule: True
     script:
-        "scripts/print_simprod_stats.py"
+        "../scripts/print_simprod_stats.py"
 
 
 rule print_benchmark_stats:
     """Prints a table with summary runtime information of a benchmarking run.
     No wildcards are used.
     """
+    localrule: True
     script:
-        "scripts/print_benchmark_stats.py"
+        "../scripts/print_benchmark_stats.py"
 
 
 rule inspect_simjob_logs:
     """Reports any warning from the simulation job logs."""
+    localrule: True
     params:
         logdir=config["paths"]["log"],
     script:
-        "scripts/inspect_MaGe_logs.sh"
+        "../scripts/inspect_MaGe_logs.sh"

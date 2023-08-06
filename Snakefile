@@ -275,6 +275,8 @@ rule build_tier_pdf:
         patterns.output_pdf_filename(config),
     log:
         patterns.log_pdffile_path(config),
+    benchmark:
+        patterns.benchmark_pdffile_path(config)
     shell:
         patterns.run_command(config, "pdf")
 

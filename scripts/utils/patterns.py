@@ -219,3 +219,10 @@ def output_pdf_filename(config, **kwargs):
 def log_pdffile_path(config, **kwargs):
     pat = str(Path(config["paths"]["log"]) / "pdf" / (pdffile_rel_basename() + ".log"))
     return expand(pat, **kwargs, allow_missing=True)[0]
+
+
+def benchmark_pdffile_path(config, **kwargs):
+    pat = str(
+        Path(config["paths"]["benchmarks"]) / "pdf" / (pdffile_rel_basename() + ".tsv")
+    )
+    return expand(pat, **kwargs, allow_missing=True)[0]
