@@ -34,11 +34,16 @@ printline("-----", "-------------", "----", "-------------", "---------")
 bdir = Path(snakemake.config["paths"]["benchmarks"])
 
 for simd in sorted(bdir.glob("*/*")):
+    njobs = 0
     data = {"wall_time": 0}
     for jobd in simd.glob("*.tsv"):
+        njobs += 1
         with jobd.open(newline="") as f:
             this_data = list(csv.DictReader(f, delimiter="\t"))[0]
             data["wall_time"] += float(this_data["s"])
+
+    if njobs == 0:
+        continue
 
     tier = simd.parent.name if simd.parent.name in ("ver", "raw") else "raw"
 
@@ -47,7 +52,6 @@ for simd in sorted(bdir.glob("*/*")):
         config = json.load(f)[simd.name]
 
     nprim = config["number_of_primaries"]
-    njobs = aggregate.get_simid_n_macros(snakemake.config, tier, simd.name)
 
     printline(
         simd.parent.name + "." + simd.name,
