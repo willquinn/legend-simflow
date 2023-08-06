@@ -20,7 +20,7 @@ import json
 from datetime import timedelta
 from pathlib import Path
 
-from utils import aggregate, patterns
+from utils import patterns
 
 
 def printline(*line):

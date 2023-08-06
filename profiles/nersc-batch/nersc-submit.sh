@@ -22,7 +22,7 @@ for s in simids:
 ')
 
 for s in $simids; do
-    job="$version_$s"
+    job="${version}_$s"
     echo ">>> $job"
 
     if squeue --me --format '%200j' | grep "$job"; then
@@ -33,6 +33,7 @@ for s in $simids; do
     snakemake --config simlist="$s" --dry-run | grep 'Nothing to be done' && continue
 
     echo "Submitting..."
+    # https://docs.nersc.gov/development/shifter/faq-troubleshooting/#failed-to-lookup-image
     sbatch \
         --nodes 1 \
         --ntasks-per-node=1 \
@@ -44,7 +45,7 @@ for s in $simids; do
         --job-name "$job" \
         --output "$logdir/$s.log" \
         --error "$logdir/$s.log" \
-	--image "legendexp/legend-base:latest" \ # https://docs.nersc.gov/development/shifter/faq-troubleshooting/#failed-to-lookup-image
+        --image "legendexp/legend-base:latest" \
         --wrap "
             srun snakemake \
                 --profile workflow/profiles/nersc-interactive \
