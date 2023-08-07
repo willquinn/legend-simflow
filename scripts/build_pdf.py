@@ -62,19 +62,18 @@ if not isinstance(args.input_files, list):
     args.input_files = [args.input_files]
 
 # with Path(args.config).open() as f:
-with open(args.config, "r") as f:
+with open(args.config) as f:
     rconfig = json.load(f)
 
 meta = LegendMetadata(args.metadata)
 chmap = meta.channelmap(rconfig["timestamp"])
 
 for file_name in args.input_files:
-
     # load in all the data into a pandas dataframe
     with uproot.open(f"{file_name}:simTree") as pytree:
-        df_data = pytree.arrays(['energy', 'npe_tot', 'mage_id'], library="pd")
-    df = df_data[df_data["energy"] > rconfig['energy_threshold']]
-    subentry_counts = df.index.get_level_values('entry').value_counts()
+        df_data = pytree.arrays(["energy", "npe_tot", "mage_id"], library="pd")
+    df = df_data[df_data["energy"] > rconfig["energy_threshold"]]
+    subentry_counts = df.index.get_level_values("entry").value_counts()
     n_primaries = len(df_data)
 
     uniq_mage_ids = df_data.mage_id.unique()
@@ -84,7 +83,9 @@ for file_name in args.input_files:
         if process_mage_id(mage_id)
     }
 
-    out_file_name = file_name.split("/")[-1].split(".")[0].replace("tier_evt", "tier_pdf") + ".root"
+    out_file_name = (
+        file_name.split("/")[-1].split(".")[0].replace("tier_evt", "tier_pdf") + ".root"
+    )
     out_file = uproot.recreate(args.output + out_file_name)
     out_file["number_of_primaries"] = str(n_primaries)
 
@@ -92,15 +93,22 @@ for file_name in args.input_files:
         dir = out_file.mkdir(_cut_name)
         # Define the grouped hists to be filled and store them in memory
         cut_hists = {
-            f"{_type}": ROOT.TH1F( 
-                f"{_type}", f"All {_type} energy deposit",
-                rconfig['hist']['nbins'], rconfig['hist']['emin'], rconfig['hist']['emax']
-            ) for _type in ["bege", "coax", "icpc", "ppc"]
-        } 
-        cut_hists['all'] = ROOT.TH1F( 
-            f"all", f"All energy deposit",
-            rconfig['hist']['nbins'], rconfig['hist']['emin'], rconfig['hist']['emax']
-        ) 
+            f"{_type}": ROOT.TH1F(
+                f"{_type}",
+                f"All {_type} energy deposit",
+                rconfig["hist"]["nbins"],
+                rconfig["hist"]["emin"],
+                rconfig["hist"]["emax"],
+            )
+            for _type in ["bege", "coax", "icpc", "ppc"]
+        }
+        cut_hists["all"] = ROOT.TH1F(
+            "all",
+            "All energy deposit",
+            rconfig["hist"]["nbins"],
+            rconfig["hist"]["emin"],
+            rconfig["hist"]["emax"],
+        )
 
         # We want to cut on multiplicity for all detectors >25keV
         # Include them in the dataset then apply cuts - then filter them out
@@ -108,22 +116,25 @@ for file_name in args.input_files:
         exec(_cut_string)
 
         for _mage_id, _mage_names in mage_names.items():
-
-            if chmap[_mage_names["name"]]["analysis"]["usability"] != 'on': continue
+            if chmap[_mage_names["name"]]["analysis"]["usability"] != "on":
+                continue
             hist = ROOT.TH1F(
-                f"ch{_mage_names['ch']}", f"{_mage_names['name']} energy deposition",
-                rconfig['hist']['nbins'], rconfig['hist']['emin'], rconfig['hist']['emax']
+                f"ch{_mage_names['ch']}",
+                f"{_mage_names['name']} energy deposition",
+                rconfig["hist"]["nbins"],
+                rconfig["hist"]["emin"],
+                rconfig["hist"]["emax"],
             )
             df_channel = df_cut[df_cut.mage_id == _mage_id]
 
             for energy in df_channel.energy.values:
-                hist.Fill(energy * 1000) # energy in keV
+                hist.Fill(energy * 1000)  # energy in keV
 
             dir[hist.GetName()] = hist
             cut_hists[chmap[_mage_names["name"]]["type"]].Add(hist)
-            cut_hists['all'].Add(hist)
+            cut_hists["all"].Add(hist)
             del hist
-        
+
         for _type, _type_hist in cut_hists.items():
             dir[_type_hist.GetName()] = _type_hist
             del _type_hist
