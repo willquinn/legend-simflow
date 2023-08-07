@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from pathlib import Path
 
 import ROOT
 import uproot
@@ -62,7 +63,7 @@ if not isinstance(args.input_files, list):
     args.input_files = [args.input_files]
 
 # with Path(args.config).open() as f:
-with open(args.config) as f:
+with Path(args.config).open() as f:
     rconfig = json.load(f)
 
 meta = LegendMetadata(args.metadata)
@@ -72,8 +73,8 @@ for file_name in args.input_files:
     # load in all the data into a pandas dataframe
     with uproot.open(f"{file_name}:simTree") as pytree:
         df_data = pytree.arrays(["energy", "npe_tot", "mage_id"], library="pd")
-    df = df_data[df_data["energy"] > rconfig["energy_threshold"]]
-    subentry_counts = df.index.get_level_values("entry").value_counts()
+    data = df_data[df_data["energy"] > rconfig["energy_threshold"]]
+    subentry_counts = data.index.get_level_values("entry").value_counts()
     n_primaries = len(df_data)
 
     uniq_mage_ids = df_data.mage_id.unique()
@@ -127,7 +128,7 @@ for file_name in args.input_files:
             )
             df_channel = df_cut[df_cut.mage_id == _mage_id]
 
-            for energy in df_channel.energy.values:
+            for energy in df_channel.energy.to_numpy():
                 hist.Fill(energy * 1000)  # energy in keV
 
             dir[hist.GetName()] = hist
