@@ -33,6 +33,7 @@ printline("-----", "-------------", "----", "-------------", "---------")
 
 bdir = Path(snakemake.config["paths"]["benchmarks"])
 
+tot_wall_time = 0
 for simd in sorted(bdir.glob("*/*")):
     njobs = 0
     data = {"wall_time": 0}
@@ -41,6 +42,7 @@ for simd in sorted(bdir.glob("*/*")):
         with jobd.open(newline="") as f:
             this_data = list(csv.DictReader(f, delimiter="\t"))[0]
             data["wall_time"] += float(this_data["s"])
+    tot_wall_time += data["wall_time"]
 
     if njobs == 0:
         continue
@@ -60,3 +62,5 @@ for simd in sorted(bdir.glob("*/*")):
         str(timedelta(seconds=int(data["wall_time"] / njobs))),
         f"{nprim:.2E}",
     )
+
+print("\nTotal wall time:", str(timedelta(seconds=int(tot_wall_time))))
