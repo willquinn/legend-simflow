@@ -21,11 +21,10 @@ import argparse
 import json
 from pathlib import Path
 
+import pandas as pd
 import ROOT
 import uproot
-import pandas as pd
 from legendmeta import LegendMetadata
-from time import time
 
 
 def process_mage_id(mage_id):
@@ -72,11 +71,12 @@ meta = LegendMetadata(args.metadata)
 chmap = meta.channelmap(rconfig["timestamp"])
 
 for file_name in args.input_files:
-    
     with uproot.open(f"{file_name}:simTree") as pytree:
-        df_data = pd.DataFrame(pytree.arrays(["energy", "npe_tot", "mage_id"], library="np"))
+        df_data = pd.DataFrame(
+            pytree.arrays(["energy", "npe_tot", "mage_id"], library="np")
+        )
     df_exploded = df_data.explode("energy").explode("mage_id")
-    
+
     df = df_exploded[df_exploded["energy"] > rconfig["energy_threshold"]]
     index_counts = df.index.value_counts()
 
