@@ -21,6 +21,7 @@ import argparse
 import json
 from pathlib import Path
 
+import pandas as pd
 import ROOT
 import uproot
 from legendmeta import LegendMetadata
@@ -70,14 +71,18 @@ meta = LegendMetadata(args.metadata)
 chmap = meta.channelmap(rconfig["timestamp"])
 
 for file_name in args.input_files:
-    # load in all the data into a pandas dataframe
     with uproot.open(f"{file_name}:simTree") as pytree:
-        df_data = pytree.arrays(["energy", "npe_tot", "mage_id"], library="pd")
-    data = df_data[df_data["energy"] > rconfig["energy_threshold"]]
-    subentry_counts = data.index.get_level_values("entry").value_counts()
+        df_data = pd.DataFrame(
+            pytree.arrays(["energy", "npe_tot", "mage_id"], library="np")
+        )
+    df_exploded = df_data.explode("energy").explode("mage_id")
+
+    df = df_exploded[df_exploded["energy"] > rconfig["energy_threshold"]]
+    index_counts = df.index.value_counts()
+
     n_primaries = len(df_data)
 
-    uniq_mage_ids = df_data.mage_id.unique()
+    uniq_mage_ids = df_exploded.dropna(subset=["mage_id"])["mage_id"].unique()
     mage_names = {
         mage_id: process_mage_id(mage_id)
         for mage_id in uniq_mage_ids
@@ -113,7 +118,7 @@ for file_name in args.input_files:
 
         # We want to cut on multiplicity for all detectors >25keV
         # Include them in the dataset then apply cuts - then filter them out
-        # Don;t store AC detectors
+        # Don't store AC detectors
         exec(_cut_string)
 
         for _mage_id, _mage_names in mage_names.items():
