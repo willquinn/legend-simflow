@@ -89,10 +89,7 @@ for file_name in args.input_files:
         if process_mage_id(mage_id)
     }
 
-    out_file_name = (
-        file_name.split("/")[-1].split(".")[0].replace("tier_evt", "tier_pdf") + ".root"
-    )
-    out_file = uproot.recreate(args.output + out_file_name)
+    out_file = uproot.recreate(args.output)
     out_file["number_of_primaries"] = str(n_primaries)
 
     for _cut_name, _cut_string in rconfig["cuts"].items():
