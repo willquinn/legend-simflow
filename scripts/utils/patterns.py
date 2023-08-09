@@ -140,6 +140,20 @@ def output_simjob_filename(config, **kwargs):
     return expand(expr, **kwargs, allow_missing=True)[0]
 
 
+def output_simjob_regex(config, **kwargs):
+    tier = kwargs.get("tier", None)
+
+    if tier is None:
+        msg = "the 'tier' argument is mandatory"
+        raise RuntimeError(msg)
+
+    fname = (
+        "*-tier_{tier}" + config["filetypes"]["output"][tier]
+    )
+    expr = str(Path(config["paths"][f"tier_{tier}"]) / "{simid}" / fname)
+    return expand(expr, **kwargs, allow_missing=True)[0]
+
+
 def input_simid_filenames(config, n_macros, **kwargs):
     """Returns the full path to `n_macros` input files for a `simid`. Needed by
     script that generates all macros for a `simid`.

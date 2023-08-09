@@ -6,7 +6,7 @@
 cd "$1" || exit 1
 version=$(basename "$1")
 
-rm -rf .snakemake
+# rm -rf .snakemake
 
 logdir=".slurm/$(date +'%Y%m%dT%H%M%SZ')"
 mkdir -p "$logdir"
@@ -18,21 +18,21 @@ with open("inputs/simprod/config/tier/raw/l200a/simconfig.json") as f:
     simids = json.load(f).keys()
 
 for s in simids:
-    print(f"pdf.{s}", end=" ")
+    print(f"evt.{s}", end=" ")
 ')
 
 for s in $simids; do
     job="${version}_$s"
-    echo ">>> $job"
+    echo "INFO: inspecting $job"
 
     if squeue --me --format '%200j' | grep "$job"; then
-        echo "job already queued"
+        echo "INFO: job already queued, skipping"
         continue
     fi
 
     snakemake --config simlist="$s" --dry-run | grep 'Nothing to be done' && continue
 
-    echo "Submitting..."
+    echo "INFO: submitting..."
     # https://docs.nersc.gov/development/shifter/faq-troubleshooting/#failed-to-lookup-image
     sbatch \
         --nodes 1 \
@@ -48,7 +48,6 @@ for s in $simids; do
         --image "legendexp/legend-base:latest" \
         --wrap "
             srun snakemake \
-                --profile workflow/profiles/nersc-interactive \
                 --shadow-prefix $PSCRATCH \
                 --config simlist=$s
         "

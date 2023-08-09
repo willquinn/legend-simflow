@@ -254,6 +254,7 @@ rule build_tier_evt:
         evt_window=lambda wildcards, input: tier_evt.smk_get_evt_window(
             wildcards, input
         ),
+	hit_files_regex=patterns.output_simjob_regex(config, tier="hit"),
     log:
         patterns.log_evtfile_path(config),
     benchmark:
