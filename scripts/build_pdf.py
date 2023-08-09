@@ -77,8 +77,8 @@ for file_name in args.input_files:
         )
     df_exploded = df_data.explode("energy").explode("mage_id")
 
-    df = df_exploded[df_exploded["energy"] > rconfig["energy_threshold"]]
-    index_counts = df.index.value_counts()
+    df_ecut = df_exploded[df_exploded["energy"] > rconfig["energy_threshold"]]
+    index_counts = df_ecut.index.value_counts()
 
     n_primaries = len(df_data)
 
