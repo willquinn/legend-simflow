@@ -147,9 +147,7 @@ def output_simjob_regex(config, **kwargs):
         msg = "the 'tier' argument is mandatory"
         raise RuntimeError(msg)
 
-    fname = (
-        "*-tier_{tier}" + config["filetypes"]["output"][tier]
-    )
+    fname = "*-tier_{tier}" + config["filetypes"]["output"][tier]
     expr = str(Path(config["paths"][f"tier_{tier}"]) / "{simid}" / fname)
     return expand(expr, **kwargs, allow_missing=True)[0]
 

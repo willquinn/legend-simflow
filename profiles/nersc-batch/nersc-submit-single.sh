@@ -14,10 +14,10 @@ job="${version}-legend-pdfs"
 
 if squeue --me --format '%200j' | grep "$job"; then
     echo "INFO: job already queued"
-    continue
+    exit 1
 fi
 
-snakemake --dry-run "$@" | grep 'Nothing to be done' && continue
+snakemake --dry-run "$@" | grep 'Nothing to be done' && exit 1
 
 echo "INFO: submitting..."
 # https://docs.nersc.gov/development/shifter/faq-troubleshooting/#failed-to-lookup-image
@@ -36,5 +36,5 @@ sbatch \
     --wrap "
         srun snakemake \
             --shadow-prefix $PSCRATCH \
-	    "$@"
+            $*
     "
