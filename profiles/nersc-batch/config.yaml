@@ -1,7 +1,3 @@
-configfile: config.json
-keep-going: true
-rerun-incomplete: true
-
 # profit from Perlmutter's scratch area: https://docs.nersc.gov/filesystems/perlmutter-scratch
 # see: https://snakemake.readthedocs.io/en/stable/project_info/faq.html#how-can-i-make-use-of-node-local-storage-when-running-cluster-jobs
 # NOTE: should actually set this through the command line, since there is a
@@ -16,8 +12,6 @@ rerun-incomplete: true
 # - https://snakemake.readthedocs.io/en/stable/executing/cluster.html#executing-on-slurm-clusters
 slurm: true
 
-# maximum number of cores requested from the cluster or cloud scheduler
-cores: all
 # maximum number of cores used locally, on the interactive node
 local-cores: 100
 # maximum number of jobs that can exist in the SLURM queue at a time
@@ -47,15 +41,6 @@ default-resources:
 set-threads:
   - build_tier_ver=1
   - build_tier_raw=1
-
-# memory and runtime requirements for each single rule
-# - https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#resources
-# - https://docs.nersc.gov/jobs/#available-memory-for-applications-on-compute-nodes
-set-resources:
-  - build_tier_ver:mem_mb=1000
-  - build_tier_ver:runtime=120
-  - build_tier_raw:mem_mb=1000
-  - build_tier_raw:runtime=120
 
 # we define groups in order to let Snakemake group rule instances in the same
 # SLURM job. relevant docs:
