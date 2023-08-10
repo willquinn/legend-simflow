@@ -70,14 +70,10 @@ with Path(args.config).open() as f:
 
 meta = LegendMetadata(args.metadata)
 chmap = meta.channelmap(rconfig["timestamp"])
-usable_geds = {
+geds_mapping = {
     f"ch{_dict['daq']['rawid']}": _name
     for _name, _dict in chmap.items()
     if chmap[_name]["system"] == "geds"
-    and (
-        chmap[_name]["analysis"]["usability"] == "on"
-        or chmap[_name]["analysis"]["usability"] == "no_psd"
-    )
 }
 n_primaries_total = 0
 
@@ -93,7 +89,7 @@ hists = {
             rconfig["hist"]["emin"],
             rconfig["hist"]["emax"],
         )
-        for _rawid, _name in sorted(usable_geds.items())
+        for _rawid, _name in sorted(geds_mapping.items())
     }
     for _cut_name in rconfig["cuts"]
 }
@@ -102,7 +98,7 @@ for file_name in args.input_files:
     with uproot.open(f"{file_name}:simTree") as pytree:
         n_primaries = pytree["mage_n_events"].array()[0]
         df_data = pd.DataFrame(
-            pytree.arrays(["energy", "npe_tot", "mage_id"], library="np")
+            pytree.arrays(["energy", "npe_tot", "mage_id", "is_good"], library="np")
         )
     df_exploded = df_data.explode("energy").explode("mage_id")
 
@@ -123,8 +119,6 @@ for file_name in args.input_files:
 
         # loop over the geds in the file
         for _rawid, _mage_id in mage_names.items():
-            if _rawid not in usable_geds.keys():
-                continue
             df_channel = df_cut[df_cut.mage_id == _mage_id]
 
             for energy in df_channel.energy.to_numpy():
@@ -149,8 +143,8 @@ for _cut_name in rconfig["cuts"]:
             rconfig["hist"]["emin"],
             rconfig["hist"]["emax"],
         )
-    for _rawid, _name in usable_geds.items():
-        hists[_cut_name][chmap[usable_geds[_rawid]]["type"]].Add(
+    for _rawid, _name in geds_mapping.items():
+        hists[_cut_name][chmap[geds_mapping[_rawid]]["type"]].Add(
             hists[_cut_name][_rawid]
         )
         hists[_cut_name]["all"].Add(hists[_cut_name][_rawid])
