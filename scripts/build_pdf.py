@@ -19,15 +19,12 @@ from __future__ import annotations
 
 import argparse
 import json
-import time
 from pathlib import Path
 
 import pandas as pd
 import ROOT
 import uproot
 from legendmeta import LegendMetadata
-
-start = time.time()
 
 
 def process_mage_id(mage_ids):
@@ -79,7 +76,7 @@ n_primaries_total = 0
 
 # So there are many input files fed into one pdf file
 # set up the hists to fill as we go along
-# Don't store the AC dets
+# Creat a hist for all dets (even AC ones)
 hists = {
     _cut_name: {
         _rawid: ROOT.TH1F(
@@ -100,7 +97,7 @@ for file_name in args.input_files:
         df_data = pd.DataFrame(
             pytree.arrays(["energy", "npe_tot", "mage_id", "is_good"], library="np")
         )
-    df_exploded = df_data.explode("energy").explode("mage_id")
+    df_exploded = df_data.explode(["energy", "mage_id", "is_good"])
 
     df_ecut = df_exploded[df_exploded["energy"] > rconfig["energy_threshold"]]
     index_counts = df_ecut.index.value_counts()
@@ -112,21 +109,24 @@ for file_name in args.input_files:
     # out_file["number_of_primaries"] = str(n_primaries)
 
     for _cut_name, _cut_string in rconfig["cuts"].items():
+        print(_cut_name)
         # We want to cut on multiplicity for all detectors >25keV
         # Include them in the dataset then apply cuts - then filter them out
         # Don't store AC detectors
         exec(_cut_string)
+        df_good = df_cut[df_cut.is_good is True]
 
         # loop over the geds in the file
         for _rawid, _mage_id in mage_names.items():
-            df_channel = df_cut[df_cut.mage_id == _mage_id]
+            df_channel = df_good[(df_good.mage_id == _mage_id)]
 
-            for energy in df_channel.energy.to_numpy():
-                hists[_cut_name][_rawid].Fill(energy * 1000)  # energy in keV
+            # As detectors may change from ac to on in the data - loop through and cut
+            for _energy in df_channel.energy.to_numpy():
+                hists[_cut_name][_rawid].Fill(_energy * 1000)  # energy in keV
 
 # The individual channels have been filled
 # now add them together to make the grouped hists
-# We don't need to worry about the ac dets
+# We don't need to worry about the ac dets as they will have zero entries
 for _cut_name in rconfig["cuts"]:
     hists[_cut_name]["all"] = ROOT.TH1F(
         f"{_cut_name}_all",
@@ -149,19 +149,13 @@ for _cut_name in rconfig["cuts"]:
         )
         hists[_cut_name]["all"].Add(hists[_cut_name][_rawid])
 
-# write the hists to file
-# Changes the names
+# write the hists to file (but only if they have none zero entries)
+# Changes the names to drop type_ etc
 out_file = uproot.recreate(args.output)
 for _cut_name, _hist_dict in hists.items():
     dir = out_file.mkdir(_cut_name)
-    """for _rawid, _name in sorted(usable_geds.items()):
-        dir[_rawid] = _hist_dict[_rawid]
-    for _type in ["bege", "coax", "icpc", "ppc"]:
-        dir[_type] = _hist_dict[_type]
-    dir['all'] = _hist_dict['all']"""
     for key, item in _hist_dict.items():
-        dir[key] = item
+        if item.GetEntries() > 0:
+            dir[key] = item
 out_file["number_of_primaries"] = str(n_primaries_total)
 out_file.close()
-
-print(time.time() - start)
