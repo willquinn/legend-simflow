@@ -19,6 +19,9 @@ import os
 from pathlib import Path
 
 # TODO: generate the files from metadata inplace here
+# this script is run for each data taking run
+# snakemake.input[0] points to the legend-metadata clone in legend-simflow
+# snakemake.output[0] is the output filename
 
 src = (
     Path(snakemake.input[0])
@@ -29,6 +32,6 @@ src = (
     / snakemake.config["experiment"]
     / f"{snakemake.wildcards.runid}-build_evt.json"
 )
-dest = Path(snakemake.output[0])
+dest = snakemake.output[0]
 
 os.system(f"cp {src} {dest}")
