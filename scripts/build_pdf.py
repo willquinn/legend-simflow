@@ -43,7 +43,7 @@ def process_mage_id(mage_ids):
             if _meta_dict["system"] == "geds":
                 location = _meta_dict["location"]
                 if location["string"] == string and location["position"] == pos:
-                    mage_names[f"ch{_meta_dict['daq']['rawid']}"] = _mage_id
+                    mage_names[_mage_id] = f"ch{_meta_dict['daq']['rawid']}"
 
     return mage_names
 
@@ -113,20 +113,23 @@ for file_name in args.input_files:
     # out_file["number_of_primaries"] = str(n_primaries)
 
     for _cut_name, _cut_string in rconfig["cuts"].items():
-        print(_cut_name)
         # We want to cut on multiplicity for all detectors >25keV
         # Include them in the dataset then apply cuts - then filter them out
         # Don't store AC detectors
         exec(_cut_string)
         df_good = df_cut[df_cut.is_good is True]
-
-        # loop over the geds in the file
+        for _energy, _mage_id in zip(
+            df_good.energy.to_numpy(), df_good.mage_id.to_numpy()
+        ):
+            _rawid = mage_names[_mage_id]
+            hists[_cut_name][_rawid].Fill(_energy * 1000)
+        """# loop over the geds in the file
         for _rawid, _mage_id in mage_names.items():
             df_channel = df_good[(df_good.mage_id == _mage_id)]
 
             # As detectors may change from ac to on in the data - loop through and cut
             for _energy in df_channel.energy.to_numpy():
-                hists[_cut_name][_rawid].Fill(_energy * 1000)  # energy in keV
+                hists[_cut_name][_rawid].Fill(_energy * 1000)  # energy in keV"""
 
 # The individual channels have been filled
 # now add them together to make the grouped hists
