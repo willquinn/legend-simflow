@@ -117,7 +117,7 @@ for file_name in args.input_files:
         # Include them in the dataset then apply cuts - then filter them out
         # Don't store AC detectors
         exec(_cut_string)
-        df_good = df_cut[df_cut.is_good is True]
+        df_good = df_cut[df_cut.is_good == True]  # noqa: E712
         for _energy, _mage_id in zip(
             df_good.energy.to_numpy(), df_good.mage_id.to_numpy()
         ):
