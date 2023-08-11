@@ -93,6 +93,10 @@ hists = {
 
 for file_name in args.input_files:
     with uproot.open(f"{file_name}:simTree") as pytree:
+        if pytree.num_entries == 0:
+            msg = f">> Error: MPP evt file {file_name} has 0 events in simTree"
+            raise Exception(msg)
+
         n_primaries = pytree["mage_n_events"].array()[0]
         df_data = pd.DataFrame(
             pytree.arrays(["energy", "npe_tot", "mage_id", "is_good"], library="np")
