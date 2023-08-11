@@ -92,7 +92,6 @@ hists = {
 }
 
 for file_name in args.input_files:
-    print(file_name)
     with uproot.open(f"{file_name}:simTree") as pytree:
         if pytree.num_entries == 0:
             msg = f">> Error: MPP evt file {file_name} has 0 events in simTree"
