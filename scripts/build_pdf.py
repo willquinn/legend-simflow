@@ -92,6 +92,7 @@ hists = {
 }
 
 for file_name in args.input_files:
+    print(file_name)
     with uproot.open(f"{file_name}:simTree") as pytree:
         if pytree.num_entries == 0:
             msg = f">> Error: MPP evt file {file_name} has 0 events in simTree"
@@ -123,13 +124,6 @@ for file_name in args.input_files:
         ):
             _rawid = mage_names[_mage_id]
             hists[_cut_name][_rawid].Fill(_energy * 1000)
-        """# loop over the geds in the file
-        for _rawid, _mage_id in mage_names.items():
-            df_channel = df_good[(df_good.mage_id == _mage_id)]
-
-            # As detectors may change from ac to on in the data - loop through and cut
-            for _energy in df_channel.energy.to_numpy():
-                hists[_cut_name][_rawid].Fill(_energy * 1000)  # energy in keV"""
 
 # The individual channels have been filled
 # now add them together to make the grouped hists
