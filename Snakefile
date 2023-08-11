@@ -67,7 +67,7 @@ rule gen_all_tier_pdf:
 def gen_target_all():
     if config.get("simlist", "*") in ("all", "*"):
         return (
-            rules.gen_all_tier_pdf.input,
+            rules.gen_pdf_release.output,
             [
                 aggregate.gen_list_of_all_plots_outputs(config, tier=t)
                 for t in ("ver", "raw")
