@@ -19,15 +19,12 @@ from __future__ import annotations
 
 import argparse
 import json
-import time
 from pathlib import Path
 
 import pandas as pd
 import ROOT
 import uproot
 from legendmeta import LegendMetadata
-
-start = time.time()
 
 
 def process_mage_id(mage_ids):
@@ -46,7 +43,7 @@ def process_mage_id(mage_ids):
             if _meta_dict["system"] == "geds":
                 location = _meta_dict["location"]
                 if location["string"] == string and location["position"] == pos:
-                    mage_names[f"ch{_meta_dict['daq']['rawid']}"] = _mage_id
+                    mage_names[_mage_id] = f"ch{_meta_dict['daq']['rawid']}"
 
     return mage_names
 
@@ -70,20 +67,16 @@ with Path(args.config).open() as f:
 
 meta = LegendMetadata(args.metadata)
 chmap = meta.channelmap(rconfig["timestamp"])
-usable_geds = {
+geds_mapping = {
     f"ch{_dict['daq']['rawid']}": _name
     for _name, _dict in chmap.items()
     if chmap[_name]["system"] == "geds"
-    and (
-        chmap[_name]["analysis"]["usability"] == "on"
-        or chmap[_name]["analysis"]["usability"] == "no_psd"
-    )
 }
 n_primaries_total = 0
 
 # So there are many input files fed into one pdf file
 # set up the hists to fill as we go along
-# Don't store the AC dets
+# Creat a hist for all dets (even AC ones)
 hists = {
     _cut_name: {
         _rawid: ROOT.TH1F(
@@ -93,18 +86,22 @@ hists = {
             rconfig["hist"]["emin"],
             rconfig["hist"]["emax"],
         )
-        for _rawid, _name in sorted(usable_geds.items())
+        for _rawid, _name in sorted(geds_mapping.items())
     }
     for _cut_name in rconfig["cuts"]
 }
 
 for file_name in args.input_files:
     with uproot.open(f"{file_name}:simTree") as pytree:
+        if pytree.num_entries == 0:
+            msg = f">> Error: MPP evt file {file_name} has 0 events in simTree"
+            raise Exception(msg)
+
         n_primaries = pytree["mage_n_events"].array()[0]
         df_data = pd.DataFrame(
-            pytree.arrays(["energy", "npe_tot", "mage_id"], library="np")
+            pytree.arrays(["energy", "npe_tot", "mage_id", "is_good"], library="np")
         )
-    df_exploded = df_data.explode("energy").explode("mage_id")
+    df_exploded = df_data.explode(["energy", "mage_id", "is_good"])
 
     df_ecut = df_exploded[df_exploded["energy"] > rconfig["energy_threshold"]]
     index_counts = df_ecut.index.value_counts()
@@ -120,19 +117,16 @@ for file_name in args.input_files:
         # Include them in the dataset then apply cuts - then filter them out
         # Don't store AC detectors
         exec(_cut_string)
-
-        # loop over the geds in the file
-        for _rawid, _mage_id in mage_names.items():
-            if _rawid not in usable_geds.keys():
-                continue
-            df_channel = df_cut[df_cut.mage_id == _mage_id]
-
-            for energy in df_channel.energy.to_numpy():
-                hists[_cut_name][_rawid].Fill(energy * 1000)  # energy in keV
+        df_good = df_cut[df_cut.is_good == True]  # noqa: E712
+        for _energy, _mage_id in zip(
+            df_good.energy.to_numpy(), df_good.mage_id.to_numpy()
+        ):
+            _rawid = mage_names[_mage_id]
+            hists[_cut_name][_rawid].Fill(_energy * 1000)
 
 # The individual channels have been filled
 # now add them together to make the grouped hists
-# We don't need to worry about the ac dets
+# We don't need to worry about the ac dets as they will have zero entries
 for _cut_name in rconfig["cuts"]:
     hists[_cut_name]["all"] = ROOT.TH1F(
         f"{_cut_name}_all",
@@ -149,25 +143,19 @@ for _cut_name in rconfig["cuts"]:
             rconfig["hist"]["emin"],
             rconfig["hist"]["emax"],
         )
-    for _rawid, _name in usable_geds.items():
-        hists[_cut_name][chmap[usable_geds[_rawid]]["type"]].Add(
+    for _rawid, _name in geds_mapping.items():
+        hists[_cut_name][chmap[geds_mapping[_rawid]]["type"]].Add(
             hists[_cut_name][_rawid]
         )
         hists[_cut_name]["all"].Add(hists[_cut_name][_rawid])
 
-# write the hists to file
-# Changes the names
+# write the hists to file (but only if they have none zero entries)
+# Changes the names to drop type_ etc
 out_file = uproot.recreate(args.output)
 for _cut_name, _hist_dict in hists.items():
     dir = out_file.mkdir(_cut_name)
-    """for _rawid, _name in sorted(usable_geds.items()):
-        dir[_rawid] = _hist_dict[_rawid]
-    for _type in ["bege", "coax", "icpc", "ppc"]:
-        dir[_type] = _hist_dict[_type]
-    dir['all'] = _hist_dict['all']"""
     for key, item in _hist_dict.items():
-        dir[key] = item
+        if item.GetEntries() > 0:
+            dir[key] = item
 out_file["number_of_primaries"] = str(n_primaries_total)
 out_file.close()
-
-print(time.time() - start)
