@@ -55,12 +55,13 @@ parser.add_argument(
     "--raw-files",
     "-r",
     default=None,
+    nargs="+",
     help="path to raw simulation files for number-of-primaries determination",
 )
 parser.add_argument("--config", "-c", required=True, help="configuration file")
 parser.add_argument("--output", "-o", required=True, help="output file name")
 parser.add_argument("--metadata", "-m", required=True, help="path to legend-metadata")
-parser.add_argument("input_files", nargs="+", required=True, help="evt tier files")
+parser.add_argument("input_files", nargs="+", help="evt tier files")
 
 args = parser.parse_args()
 
