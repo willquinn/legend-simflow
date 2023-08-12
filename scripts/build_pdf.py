@@ -51,10 +51,16 @@ def process_mage_id(mage_ids):
 parser = argparse.ArgumentParser(
     prog="build_pdf", description="build LEGEND pdf files from evt tier files"
 )
-parser.add_argument("--config", "-c", help="configuration file")
-parser.add_argument("--output", "-o", help="output file name")
-parser.add_argument("--metadata", "-m", help="path to legend-metadata")
-parser.add_argument("input_files", nargs="+", help="evt tier files")
+parser.add_argument(
+    "--raw-files",
+    "-r",
+    default=None,
+    help="path to raw simulation files for number-of-primaries determination",
+)
+parser.add_argument("--config", "-c", required=True, help="configuration file")
+parser.add_argument("--output", "-o", required=True, help="output file name")
+parser.add_argument("--metadata", "-m", required=True, help="path to legend-metadata")
+parser.add_argument("input_files", nargs="+", required=True, help="evt tier files")
 
 args = parser.parse_args()
 
@@ -73,6 +79,11 @@ geds_mapping = {
     if chmap[_name]["system"] == "geds"
 }
 n_primaries_total = 0
+
+if args.raw_files:
+    for file in args.raw_files:
+        with uproot.open(f"{file}:fTree") as fTree:
+            n_primaries_total += fTree["fNEvents"].array(entry_stop=1)[0]
 
 # So there are many input files fed into one pdf file
 # set up the hists to fill as we go along
@@ -106,7 +117,8 @@ for file_name in args.input_files:
     df_ecut = df_exploded[df_exploded["energy"] > rconfig["energy_threshold"]]
     index_counts = df_ecut.index.value_counts()
 
-    n_primaries_total += n_primaries
+    if not args.raw_files:
+        n_primaries_total += n_primaries
 
     uniq_mage_ids = df_exploded.dropna(subset=["mage_id"])["mage_id"].unique()
     mage_names = process_mage_id(uniq_mage_ids)
@@ -157,5 +169,5 @@ for _cut_name, _hist_dict in hists.items():
     for key, item in _hist_dict.items():
         if item.GetEntries() > 0:
             dir[key] = item
-out_file["number_of_primaries"] = str(n_primaries_total)
+out_file["number_of_primaries"] = str(int(n_primaries_total))
 out_file.close()

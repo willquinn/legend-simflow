@@ -293,6 +293,8 @@ rule build_tier_pdf:
         config_file=patterns.pdf_config_path(config),
     output:
         patterns.output_pdf_filename(config),
+    params:
+        raw_files_regex=patterns.output_simjob_regex(config, tier="raw"),
     log:
         patterns.log_pdffile_path(config),
     benchmark:
