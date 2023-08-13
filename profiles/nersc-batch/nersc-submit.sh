@@ -12,13 +12,13 @@ mkdir -p "$logdir"
 
 if [[ "$1" == "parallel" ]]; then
     simids=$(python -c '
-    import json
+import json
 
-    with open("inputs/simprod/config/tier/raw/l200a/simconfig.json") as f:
-        simids = json.load(f).keys()
+with open("inputs/simprod/config/tier/raw/l200a/simconfig.json") as f:
+    simids = json.load(f).keys()
 
-    for s in simids:
-        print(f"evt.{s}", end=" ")
+for s in simids:
+    print(f"pdf.{s}", end=" ")
     ')
 
     for s in $simids; do
