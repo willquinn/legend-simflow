@@ -50,7 +50,7 @@ Snakemake rule.*
    stands for Geant4 "step". In this tier, step-wise operations like optical map application
    or step clustering are typically applied.
 1. Tier `evt` building: multiple operations are performed in order to build actual events and
-   incorporate information about the data taking runs for which the user wants to build pdfs: 
+   incorporate information about the data taking runs for which the user wants to build pdfs:
    - Partition the `hit` event statistics into fractions corresponding to the actual total livetime
      fraction spanned by each selected run. This information is extracted from
      [`legend-metadata/dataprod/runinfo.json`](https://github.com/legend-exp/legend-metadata/blob/main/dataprod/runinfo.json)
