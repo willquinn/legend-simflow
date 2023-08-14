@@ -8,7 +8,7 @@
 ![License](https://img.shields.io/github/license/legend-exp/legend-simflow)
 
 End-to-end Snakemake workflow to run Monte Carlo simulations of signal and background
-signatures in the LEGEND experiment and produce probability-density functions.
+signatures in the LEGEND experiment and produce probability-density functions (pdfs).
 Configuration metadata (e.g. rules for generating simulation macros or
 post-processing settings) is stored at
 [legend-simflow-config](https://github.com/legend-exp/legend-simflow-config).
@@ -16,27 +16,49 @@ post-processing settings) is stored at
 ## Key concepts
 
 - Simulations are labeled by an unique identifier (e.g. `l200a-hpge-bulk-2vbb`), often
-  referred as `simid`. The identifier is defined in
+  referred as `simid` (simID). The identifier is defined in
   [legend-simflow-config](https://github.com/legend-exp/legend-simflow-config)
-  through `simconfig.json` files.
+  through `simconfig.json` files in tier directories `raw` and `ver`.
 - Each simulation is defined by a template macro (also stored as metadata) and by a set of rules
   (in `simconfig.json`) needed to generate the actual macros (template variable substitutions,
   number of primaries, number of jobs, etc).
 - The production is organized in tiers. The state of a simulation in a certain tier is labeled
   as `<tier>.<simid>`. Snakemake understands this syntax.
+- The generated pdfs refer to a user-defined selection of LEGEND data taking runs. Such a list
+  of runs is specified through the configuration file.
 - The production can be restricted to a subset of simulations by passing a list of identifiers
   to Snakemake.
 
-### Workflow steps
+### Workflow steps (tiers)
+
+<p align="center">
+  <img src=".github/dag-example.png" alt="DAG example">
+</p>
+
+*Figure: representation of an example workflow for simID `l200a-hpge-bulk-2vbb`, 5 parallel jobs
+and runIDs `l200-p04-r00{2,3}-phy`. The first word in each box is the name of the corresponding
+Snakemake rule.*
 
 1. Macro files are generated and writted to disk according to rules
    defined in the metadata. These macros are in one-to-one correspondence
    with simulation jobs in the next tiers
 1. Tier `ver` building: run simulations that generate Monte Carlo
-   event vertices needed to (some) simulations in the next tier
+   event vertices needed to some simulations in the next tier. Simulations that do not need
+   a special event vertices will directly start from tier `raw`.
 1. Tier `raw` building: run full event simulations.
-1. Tier `hit` building: run the first (hit-oriented) step of simulation post-processing
-1. *To be documented...*
+1. Tier `hit` building: run the first (hit-oriented) step of simulation post-processing. Here, "hit"
+   stands for Geant4 "step". In this tier, step-wise operations like optical map application
+   or step clustering are typically applied.
+1. Tier `evt` building: multiple operations are performed in order to build actual events and
+   incorporate information about the data taking runs for which the user wants to build pdfs: 
+   - Partition the `hit` event statistics into fractions corresponding to the actual total livetime
+     fraction spanned by each selected run. This information is extracted from
+     [`legend-metadata/dataprod/runinfo.json`](https://github.com/legend-exp/legend-metadata/blob/main/dataprod/runinfo.json)
+   - Apply HPGe energy resolution functions for each selected run found in the data production
+     auto-generated metadata
+   - Apply HPGe status flags (available in
+     [`legend-metadata/hardware/config`](https://github.com/legend-exp/legend-metadata/blob/main/hardware/config))
+1. Tier `pdf` building: summarize `evt`-tier output into histograms (the pdfs).
 
 ## Setup
 
@@ -62,8 +84,10 @@ in great detail. Here's a basic description of its fields:
 - `experiment`: labels the experiment to be simulated. The same name is used in
   the metadata to label the corresponding configuration files.
 - `simlist`: list of simulation identifiers (see below) to be processed by Snakemake.
-  Can be a list of strings or a path to a text file. If `*`, will process all simulations
+  Can be a list of strings or a path to a text file. If `*` or `all`, will process all simulations
   defined in the metadata.
+- `runlist`: list of LEGEND data taking runs to build pdfs for, in the standard format
+  `<experiment>-<period>-<run>-<type>` (e.g. `l200-p03-r000-phy`)
 - `benchmark`: section used to configure a benchmarking run:
   - `enabled`: boolean flag to enable/disable the feature
   - `n_primaries`: number of primary events to be simulated in the lower tiers `ver` and `raw`.
@@ -77,6 +101,9 @@ in great detail. Here's a basic description of its fields:
   instead of the `MaGe` command. This allows Snakemake to better detect job failures.
 - `execenv`: defines the software environment (container) where all jobs
   should be executed (see below).
+
+> **Note**
+> all these configuration parameters can be overridden at runtime through Snakemake's `--config` option.
 
 ## Production
 
@@ -115,7 +142,13 @@ hit.l200a-hpge-bulk-2vbb
 ...
 ```
 
-The `print_stats` rule prints a table with runtime statistics:
+One can even just directly pass a comma-separated list:
+
+```console
+> snakemake --config simlist="raw.l200a-fibers-Ra224-to-Pb208,hit.l200a-hpge-bulk-2vbb"
+```
+
+Once the production is over, the `print_stats` rule can be used to display a table with runtime statistics:
 
 ```console
 > snakemake -q all print_stats
@@ -186,7 +219,7 @@ used](https://docs.nersc.gov/jobs/workflow/snakemake/#building-an-environment-co
 ```console
 > module load python
 > export SWPREFIX="/global/common/software/m2676/<your user>"
-> mamba create --prefix $SWPREFIX/.conda/snakemake -c conda-forge -c bioconda snakemake
+> mamba create --prefix $SWPREFIX/.conda/snakemake -c conda-forge -c bioconda snakemake uproot panoptes-ui root
 > mamba activate $SWPREFIX/.conda/snakemake
 ```
 
@@ -198,19 +231,25 @@ used](https://docs.nersc.gov/jobs/workflow/snakemake/#building-an-environment-co
 > ```
 > setfacl -R -m u:nobody:X <path-to-cycle-directory>
 > ```
-> This is not needed if hosting the production below `$PSCRATCH`.
+> This is not needed if hosting the production below `$PSCRATCH` or if using
+> [Podman-HPC](https://docs.nersc.gov/development/podman-hpc/overview).
 
 ### Production
 
-Start the production on the interactive node:
+Start the production on the interactive node (the default profile works fine):
 ```
-snakemake --profile workflow/profiles/nersc-interactive --shadow-prefix "$PSCRATCH"
+snakemake --shadow-prefix "$PSCRATCH"
 ```
 
 Start the production on the batch nodes (via SLURM):
 ```
 snakemake --profile workflow/profiles/nersc-batch --shadow-prefix "$PSCRATCH"
 ```
+
+> **Warning**
+> This profile does not work as expected at the moment, see https://github.com/legend-exp/legend-simflow/issues/8.
+> [This temporary script](https://github.com/legend-exp/legend-simflow/blob/main/profiles/nersc-batch/nersc-submit.sh)
+> can be used instead.
 
 ## Useful Snakemake CLI options
 
@@ -229,7 +268,6 @@ usage: snakemake [OPTIONS] -- [TARGET ...]
                         Specify or overwrite the config file of the workflow.
   --touch, -t           Touch output files (mark them up to date without really changing them) instead of running
                         their commands.
-  --keep-going, -k      Go on with independent jobs if a job fails.
   --forceall, -F        Force the execution of the selected (or the first) rule and all rules it is dependent on
                         regardless of already created output.
   --shadow-prefix DIR   Specify a directory in which the 'shadow' directory is created. If not supplied, the value
@@ -268,10 +306,23 @@ In `config.json`:
 ```json
 "execenv": [
     "shifter",
-    "--image",
-    "legendexp/legend-software:latest",
+    "--image", "legendexp/legend-software:latest",
     "--volume $_/inputs/simprod/MaGe:/private",
     "--env MESHFILESPATH=/private/data/legendgeometry/stl_files",
     "--env MAGERESULTS=/private/data/legendgeometry"
 ]
 ```
+
+### With NERSC Podman-HPC
+
+```json
+"execenv": [
+    "podman-hpc", "run",
+    "--volume $HOME:$HOME",
+    "--volume $_:$_",
+    "--workdir $_",
+    "--volume $_/inputs/simprod/MaGe:/private",
+    "--env MESHFILESPATH=/private/data/legendgeometry/stl_files",
+    "--env MAGERESULTS=/private/data/legendgeometry"
+    "docker.io/legendexp/legend-software:latest"
+]
