@@ -159,8 +159,14 @@ def process_simlist(config, simlist=None):
     if simlist is None:
         simlist = utils.get_some_list(config["simlist"])
 
+    # if it's a list, every item is a simid
+    # otherwise, interpret as comma-separated list
+    if not isinstance(simlist, list):
+        simlist = simlist.split(",")
+
     mlist = []
     for line in simlist:
+        # each line is in the format <tier>.<simid>
         tier = line.split(".")[0].strip()
         simid = line.split(".")[1].strip()
 
