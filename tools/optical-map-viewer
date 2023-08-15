@@ -180,7 +180,7 @@ void do_visualize(int rebin, bool array_closeup) {
     }
 
     auto canvas = new TCanvas(
-        "gerda_tomography", "GERDA Tomography",
+        "optical_map_viewer", "Optical Map Viewer",
         1920, 1080
     );
     canvas->ToggleEventStatus();
