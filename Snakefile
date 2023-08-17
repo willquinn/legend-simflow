@@ -233,6 +233,7 @@ rule make_tier_evt_config_file:
     Uses wildcard `runid`."""
     localrule: True
     input:
+        # FIXME: need to list actual files, not the directory
         config["paths"]["metadata"],
     output:
         Path(config["paths"]["genconfig"]) / "{runid}-build_evt.json",
