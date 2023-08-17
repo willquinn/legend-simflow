@@ -5,7 +5,15 @@ function sbatch_submit() {
     local logdir="$2"
     shift 2
 
-    echo "INFO: submitting $job..."
+    if [[ -n "$DRY_RUN" ]]; then
+        echo "INFO: WOULD HAVE SUBMITTED $job with args:"
+        echo "INFO:     $*"
+	return
+    else
+        echo "INFO: SUBMITTING $job with args:"
+        echo "INFO:     $*"
+    fi
+
     sbatch \
         --nodes 1 \
         --ntasks-per-node=1 \
@@ -34,14 +42,14 @@ function sbatch_submit_simid() {
     echo "INFO: inspecting $job"
     is_job_in_queue "$job" && return
 
-    snakemake --config simlist="$simid" --dry-run 2> /dev/null | grep 'Nothing to be done' && return
+    snakemake --config simlist="$simid" --dry-run 2> /dev/null | grep -q 'Nothing to be done' && return
 
     sbatch_submit "$job" "$logdir" --config simlist="$simid"
 }
 
 function is_job_in_queue() {
-    if squeue --me --format '%200j' | grep "$1"; then
-        echo "INFO: job already queued"
+    if squeue --me --format '%200j' | grep -q "$1"; then
+        echo "INFO: job already queued, skipping"
         return 0
     else return 1
     fi
@@ -69,7 +77,7 @@ for s in simids:
     ')
 
     # shellcheck disable=SC2086
-    parallel --jobs 10 sbatch_submit_simid ::: $simids ::: "$version" ::: "$logdir"
+    parallel sbatch_submit_simid ::: $simids ::: "$version" ::: "$logdir"
 
 else
     job="$version::all"
@@ -77,7 +85,7 @@ else
     echo "INFO: inspecting $job"
     is_job_in_queue "$job" && exit 1
 
-    snakemake --dry-run "$@" 2> /dev/null | grep 'Nothing to be done' && exit 1
+    snakemake --dry-run "$@" 2> /dev/null | grep -q 'Nothing to be done' && exit 1
 
     sbatch_submit "$job" "$logdir" "$*"
 fi
