@@ -1,17 +1,11 @@
 #!/bin/bash
 
-function make_version() {
-    version="$(basename "$PWD")"
-    echo "$(basename "$(dirname "$PWD")")-$version"
-}
-
 function sbatch_submit() {
     local job="$1"
     local logdir="$2"
     shift 2
 
     echo "INFO: submitting $job..."
-    return
     sbatch \
         --nodes 1 \
         --ntasks-per-node=1 \
@@ -32,8 +26,10 @@ function sbatch_submit() {
 
 function sbatch_submit_simid() {
     local simid="$1"
-    local job
-    job="$(make_version)::$simid"
+    local version="$2"
+    local logdir="$3"
+
+    local job="$version::$simid"
 
     echo "INFO: inspecting $job"
     is_job_in_queue "$job" && return
@@ -51,10 +47,12 @@ function is_job_in_queue() {
     fi
 }
 
-export -f make_version
 export -f sbatch_submit
 export -f sbatch_submit_simid
 export -f is_job_in_queue
+
+version="$(basename "$PWD")"
+echo "$(basename "$(dirname "$PWD")")-$version"
 
 logdir=".slurm/$(date +'%Y%m%dT%H%M%SZ')"
 mkdir -p "$logdir"
@@ -71,10 +69,10 @@ for s in simids:
     ')
 
     # shellcheck disable=SC2086
-    parallel --jobs 10 sbatch_submit_simid ::: $simids
+    parallel --jobs 10 sbatch_submit_simid ::: $simids ::: "$version" ::: "$logdir"
 
 else
-    job="$(make_version)::all"
+    job="$version::all"
 
     echo "INFO: inspecting $job"
     is_job_in_queue "$job" && exit 1
