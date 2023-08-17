@@ -11,6 +11,7 @@ function sbatch_submit() {
     shift 2
 
     echo "INFO: submitting $job..."
+    return
     sbatch \
         --nodes 1 \
         --ntasks-per-node=1 \
@@ -70,7 +71,7 @@ for s in simids:
     ')
 
     # shellcheck disable=SC2086
-    parallel --citation --jobs 10 sbatch_submit_simid ::: $simids
+    parallel --jobs 10 sbatch_submit_simid ::: $simids
 
 else
     job="$(make_version)::all"
