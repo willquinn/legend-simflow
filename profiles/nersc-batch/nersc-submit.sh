@@ -52,7 +52,7 @@ export -f sbatch_submit_simid
 export -f is_job_in_queue
 
 version="$(basename "$PWD")"
-echo "$(basename "$(dirname "$PWD")")-$version"
+version="$(basename "$(dirname "$PWD")")-$version"
 
 logdir=".slurm/$(date +'%Y%m%dT%H%M%SZ')"
 mkdir -p "$logdir"
