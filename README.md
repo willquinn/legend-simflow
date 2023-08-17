@@ -306,7 +306,7 @@ In `config.json`:
 ```json
 "execenv": [
     "shifter",
-    "--image", "legendexp/legend-software:latest",
+    "--image legendexp/legend-software:latest",
     "--volume $_/inputs/simprod/MaGe:/private",
     "--env MESHFILESPATH=/private/data/legendgeometry/stl_files",
     "--env MAGERESULTS=/private/data/legendgeometry"
@@ -315,14 +315,16 @@ In `config.json`:
 
 ### With NERSC Podman-HPC
 
-```json
+```js
 "execenv": [
-    "podman-hpc", "run",
-    "--volume $HOME:$HOME",
-    "--volume $_:$_",
-    "--workdir $_",
-    "--volume $_/inputs/simprod/MaGe:/private",
-    "--env MESHFILESPATH=/private/data/legendgeometry/stl_files",
-    "--env MAGERESULTS=/private/data/legendgeometry"
-    "docker.io/legendexp/legend-software:latest"
+  "podman-hpc run",
+  "--volume $_/inputs/simprod/MaGe:/private", # mount private MaGe resources
+  "--env MESHFILESPATH=/private/data/legendgeometry/stl_files",
+  "--env MAGERESULTS=/private/data/legendgeometry",
+  "--volume $_:$_", # make production folder available in the container
+  "--volume $PSCRATCH:$PSCRATCH", # make scratch area visible too
+  "--workdir $$PWD", # podman-hpc does not automatically cd into cwd, unfortunately. NOTE: double $$
+  "docker.io/legendexp/legend-software:latest",
+  "--"
 ]
+```
