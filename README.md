@@ -226,10 +226,14 @@ used](https://docs.nersc.gov/jobs/workflow/snakemake/#building-an-environment-co
 > **Note**
 >
 > To make proper use of LEGEND's shifter containers, special permissions must be
-> set on the production cycle directory (see
+> set on the `input/simprod/config/MaGe` directory **and all its parents** (see
 > [docs](https://docs.nersc.gov/development/shifter/faq-troubleshooting/#invalid-volume-map)):
-> ```
-> setfacl -R -m u:nobody:X <path-to-cycle-directory>
+> ```console
+> > setfacl -m u:nobody:x <path-to-cycle-directory>/input/simprod/MaGe
+> > setfacl -m u:nobody:x <path-to-cycle-directory>/input/simprod
+> > setfacl -m u:nobody:x <path-to-cycle-directory>/input
+> > setfacl -m u:nobody:x <path-to-cycle-directory>
+> ...and further back if needed...
 > ```
 > This is not needed if hosting the production below `$PSCRATCH` or if using
 > [Podman-HPC](https://docs.nersc.gov/development/podman-hpc/overview).
