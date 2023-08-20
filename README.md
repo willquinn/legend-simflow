@@ -253,7 +253,23 @@ snakemake --profile workflow/profiles/nersc-batch --shadow-prefix "$PSCRATCH"
 > **Warning**
 > This profile does not work as expected at the moment, see https://github.com/legend-exp/legend-simflow/issues/8.
 > [This temporary script](https://github.com/legend-exp/legend-simflow/blob/main/profiles/nersc-batch/nersc-submit.sh)
-> can be used instead.
+> can be used instead. Note that the maximum runtime at NERSC is 12 hours, so jobs might be killed.
+>
+> `nersc-submit.sh` usage:
+>
+> Send a SLURM job for each simulation ID up to the `pdf` tier (in parallel). 
+> ```console
+> > cd <production dir>
+> > ./workflow/profiles/nersc-batch/nersc-submit.sh parallel
+> ```
+> Dry run, to check what would be submitted (recommended):
+> ```console
+> > DRY_RUN=1 ./workflow/profiles/nersc-batch/nersc-submit.sh
+> ```
+> Send a Snakemake execution as a single job:
+> ```console
+> > ./workflow/profiles/nersc-batch/nersc-submit.sh [SNAKEMAKE ARGS]
+> ```
 
 ## Useful Snakemake CLI options
 
