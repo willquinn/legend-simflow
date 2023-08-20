@@ -257,7 +257,7 @@ snakemake --profile workflow/profiles/nersc-batch --shadow-prefix "$PSCRATCH"
 >
 > `nersc-submit.sh` usage:
 >
-> Send a SLURM job for each simulation ID up to the `pdf` tier (in parallel). 
+> Send a SLURM job for each simulation ID up to the `pdf` tier (in parallel).
 > ```console
 > > cd <production dir>
 > > ./workflow/profiles/nersc-batch/nersc-submit.sh parallel
