@@ -338,12 +338,12 @@ In `config.json`:
 ```js
 "execenv": [
   "podman-hpc run",
-  "--volume $_/inputs/simprod/MaGe:/private", # mount private MaGe resources
+  "--volume $_/inputs/simprod/MaGe:/private", // mount private MaGe resources
   "--env MESHFILESPATH=/private/data/legendgeometry/stl_files",
   "--env MAGERESULTS=/private/data/legendgeometry",
-  "--volume $_:$_", # make production folder available in the container
-  "--volume $PSCRATCH:$PSCRATCH", # make scratch area visible too
-  "--workdir $$PWD", # podman-hpc does not automatically cd into cwd, unfortunately. NOTE: double $$
+  "--volume $_:$_", // make production folder available in the container
+  "--volume $PSCRATCH:$PSCRATCH", // make scratch area visible too
+  "--workdir $$PWD", // podman-hpc does not automatically cd into cwd, unfortunately. NOTE: double $$
   "docker.io/legendexp/legend-software:latest",
   "--"
 ]
