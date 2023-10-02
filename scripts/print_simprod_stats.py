@@ -40,7 +40,7 @@ for simd in sorted(bdir.glob("*/*")):
     for jobd in simd.glob("*.tsv"):
         njobs += 1
         with jobd.open(newline="") as f:
-            this_data = list(csv.DictReader(f, delimiter="\t"))[0]
+            this_data = next(iter(csv.DictReader(f, delimiter="\t")))
             data["wall_time"] += float(this_data["s"])
     tot_wall_time += data["wall_time"]
 
