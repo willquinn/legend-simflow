@@ -35,7 +35,7 @@ for simd in sorted(bdir.glob("*/*")):
     data = {"cpu_time": 0}
     for jobd in simd.glob("*.tsv"):
         with jobd.open(newline="") as f:
-            this_data = list(csv.DictReader(f, delimiter="\t"))[0]
+            this_data = next(iter(csv.DictReader(f, delimiter="\t")))
             data["cpu_time"] += float(this_data["cpu_time"])
 
     speed = (
