@@ -21,8 +21,8 @@ import argparse
 import json
 from pathlib import Path
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 import ROOT
 import uproot
 from legendmeta import LegendMetadata
@@ -92,7 +92,7 @@ if args.raw_files:
 # Creat a hist for all dets (even AC ones)
 hists = {
     _cut_name: {
-        _rawid: ROOT.TH1D(
+        _rawid: ROOT.TH1F(
             f"{_cut_name}_{_rawid}",
             f"{_name} energy deposits",
             rconfig["hist"]["nbins"],
@@ -101,20 +101,21 @@ hists = {
         )
         for _rawid, _name in sorted(geds_mapping.items())
     }
-    for _cut_name in rconfig["cuts"] if rconfig["cuts"][_cut_name]["is_sum"] == 'False'
+    for _cut_name in rconfig["cuts"]
+    if rconfig["cuts"][_cut_name]["is_sum"] == "False"
 }
 
 # When we want to start summing the energy of events we have to treat them differently
 sum_hists = {
-    _cut_name: 
-        ROOT.TH1D(
-            f"{_cut_name}_all_summed",
-            "summed energy deposits",
-            rconfig["hist"]["nbins"],
-            rconfig["hist"]["emin"],
-            rconfig["hist"]["emax"],
-        )
-    for _cut_name in rconfig["cuts"] if rconfig["cuts"][_cut_name]["is_sum"] == 'True'
+    _cut_name: ROOT.TH1F(
+        f"{_cut_name}_all_summed",
+        "summed energy deposits",
+        rconfig["hist"]["nbins"],
+        rconfig["hist"]["emin"],
+        rconfig["hist"]["emax"],
+    )
+    for _cut_name in rconfig["cuts"]
+    if rconfig["cuts"][_cut_name]["is_sum"] == "True"
 }
 
 for file_name in args.input_files:
@@ -132,12 +133,12 @@ for file_name in args.input_files:
     df_ecut = df_exploded.query(f"energy > {rconfig['energy_threshold']}")
 
     # These give you the multiplicity of events (and events not including AC detectors)
-    index_counts            = df_ecut.index.value_counts()
-    index_counts_is_good    = df_ecut.query("is_good == True").index.value_counts()
+    index_counts = df_ecut.index.value_counts()
+    index_counts_is_good = df_ecut.query("is_good == True").index.value_counts()
 
     df_ecut = df_ecut.copy()
-    df_ecut['mul']   = df_ecut.index.map(index_counts)
-    df_ecut['mul_is_good']  = df_ecut.index.map(index_counts_is_good)
+    df_ecut["mul"] = df_ecut.index.map(index_counts)
+    df_ecut["mul_is_good"] = df_ecut.index.map(index_counts_is_good)
 
     if not args.raw_files:
         n_primaries_total += n_primaries
@@ -151,30 +152,40 @@ for file_name in args.input_files:
         # Include them in the dataset then apply cuts - then filter them out
         # Don't store AC detectors
         _cut_string = _cut_dict["cut_string"]
-        if _cut_string == '':
-            df_cut = df_ecut.copy()
-        else:
-            df_cut = df_ecut.query(_cut_string)
+        df_cut = df_ecut.copy() if _cut_string == "" else df_ecut.query(_cut_string)
 
         df_good = df_cut[df_cut.is_good == True]  # noqa: E712
 
-        if _cut_dict["is_sum"] == 'False':
+        if _cut_dict["is_sum"] == "False":
             for __mage_id in df_good.mage_id.unique():
-                _rawid   = mage_names[__mage_id]
-                _energy_array = df_good.query(f"mage_id == {__mage_id}").energy.to_numpy(dtype=float) * 1000 # keV
-                
-                hists[_cut_name][_rawid].FillN(len(_energy_array), _energy_array, np.ones(len(_energy_array)))
+                _rawid = mage_names[__mage_id]
+                _energy_array = (
+                    df_good.query(f"mage_id == {__mage_id}").energy.to_numpy(
+                        dtype=float
+                    )
+                    * 1000
+                )  # keV
+
+                hists[_cut_name][_rawid].FillN(
+                    len(_energy_array), _energy_array, np.ones(len(_energy_array))
+                )
         else:
-            _summed_energy_array = df_good.groupby(df_good.index).energy.sum().to_numpy(dtype=float) * 1000 # keV
-            sum_hists[_cut_name].FillN(len(_summed_energy_array), _summed_energy_array, np.ones(len(_summed_energy_array)))
+            _summed_energy_array = (
+                df_good.groupby(df_good.index).energy.sum().to_numpy(dtype=float) * 1000
+            )  # keV
+            sum_hists[_cut_name].FillN(
+                len(_summed_energy_array),
+                _summed_energy_array,
+                np.ones(len(_summed_energy_array)),
+            )
 
     break
 
 # The individual channels have been filled
 # now add them together to make the grouped hists
 # We don't need to worry about the ac dets as they will have zero entries
-for _cut_name in hists.keys():
-    hists[_cut_name]["all"] = ROOT.TH1D(
+for _cut_name in hists:
+    hists[_cut_name]["all"] = ROOT.TH1F(
         f"{_cut_name}_all",
         "All energy deposits",
         rconfig["hist"]["nbins"],
@@ -182,7 +193,7 @@ for _cut_name in hists.keys():
         rconfig["hist"]["emax"],
     )
     for _type in ["bege", "coax", "icpc", "ppc"]:
-        hists[_cut_name][_type] = ROOT.TH1D(
+        hists[_cut_name][_type] = ROOT.TH1F(
             f"{_cut_name}_{_type}",
             f"All {_type} energy deposits",
             rconfig["hist"]["nbins"],
