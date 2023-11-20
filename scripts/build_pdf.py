@@ -179,8 +179,6 @@ for file_name in args.input_files:
                 np.ones(len(_summed_energy_array)),
             )
 
-    break
-
 # The individual channels have been filled
 # now add them together to make the grouped hists
 # We don't need to worry about the ac dets as they will have zero entries
