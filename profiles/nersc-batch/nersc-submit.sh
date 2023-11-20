@@ -64,9 +64,9 @@ version="$(basename "$PWD")"
 version="$(basename "$(dirname "$PWD")")-$version"
 
 logdir=".slurm/$(date +'%Y%m%dT%H%M%SZ')"
-if [[ ! -n "$DRY_RUN" ]]; then
+if [[ -z "$DRY_RUN" ]]; then
     mkdir -p "$logdir"
-    ln -fns $(basename "$logdir") .slurm/latest
+    ln -fns "$(basename "$logdir")" .slurm/latest
 fi
 
 if [[ "$1" == "parallel" ]]; then
