@@ -134,13 +134,6 @@ rule build_tier_ver:
     """Run a single simulation job for the ver tier.
     Uses wildcards `simid` and `jobid`.
 
-    Note
-    ----
-    The Snakemake shadow functionality is enabled in order to write the output
-    file in the shadow area (i.e. scratch area) and then move it to
-    destination.  This works only if the output directory specified in the
-    config file is a *relative* path.
-
     Warning
     -------
     The macro file is marked as "ancient" as a workaround to the fact that
@@ -159,8 +152,6 @@ rule build_tier_ver:
         patterns.log_file_path(config, tier="ver"),
     benchmark:
         patterns.benchmark_file_path(config, tier="ver")
-    shadow:
-        "minimal"
     shell:
         patterns.run_command(config, "ver")
 
@@ -168,13 +159,6 @@ rule build_tier_ver:
 rule build_tier_raw:
     """Run a single simulation job for the raw tier.
     Uses wildcards `simid` and `jobid`.
-
-    Note
-    ----
-    The Snakemake shadow functionality is enabled in order to write the output
-    file in the shadow area (i.e. scratch area) and then move it to
-    destination.  This works only if the output directory specified in the
-    config file is a *relative* path.
 
     Warning
     -------
@@ -195,22 +179,12 @@ rule build_tier_raw:
         patterns.log_file_path(config, tier="raw"),
     benchmark:
         patterns.benchmark_file_path(config, tier="raw")
-    shadow:
-        "minimal"
     shell:
         patterns.run_command(config, "raw")
 
 
 rule build_tier_hit:
-    """Produces a hit tier file starting from a single raw tier file.
-
-    Note
-    ----
-    The Snakemake shadow functionality is enabled in order to write the output
-    file in the shadow area (i.e. scratch area) and then move it to
-    destination.  This works only if the output directory specified in the
-    config file is a *relative* path.
-    """
+    """Produces a hit tier file starting from a single raw tier file."""
     message:
         "Producing output file for job hit.{wildcards.simid}.{wildcards.jobid}"
     input:
@@ -224,8 +198,6 @@ rule build_tier_hit:
         patterns.log_file_path(config, tier="hit"),
     benchmark:
         patterns.benchmark_file_path(config, tier="hit")
-    shadow:
-        "copy-minimal"  # want the raw files to be in the shadow area
     shell:
         patterns.run_command(config, "hit")
 

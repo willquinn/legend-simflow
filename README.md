@@ -121,13 +121,6 @@ Snakemake will use the `default` profile.
 > snakemake
 ```
 
-On a system providing [Scratch space](https://en.wikipedia.org/wiki/Scratch_space),
-like NERSC, the `--shadow-prefix` option should be set to point to it:
-
-```console
-> snakemake --shadow-prefix <path-to-scratch-area> [...]
-```
-
 The `--config` command line option is very useful to override configuration values.
 It can be used, for example, to restrict the production to a subset of simulations:
 
@@ -242,12 +235,12 @@ used](https://docs.nersc.gov/jobs/workflow/snakemake/#building-an-environment-co
 
 Start the production on the interactive node (the default profile works fine):
 ```
-snakemake --shadow-prefix "$PSCRATCH"
+snakemake
 ```
 
 Start the production on the batch nodes (via SLURM):
 ```
-snakemake --profile workflow/profiles/nersc-batch --shadow-prefix "$PSCRATCH"
+snakemake --profile workflow/profiles/nersc-batch
 ```
 
 > **Warning**
@@ -290,8 +283,6 @@ usage: snakemake [OPTIONS] -- [TARGET ...]
                         their commands.
   --forceall, -F        Force the execution of the selected (or the first) rule and all rules it is dependent on
                         regardless of already created output.
-  --shadow-prefix DIR   Specify a directory in which the 'shadow' directory is created. If not supplied, the value
-                        is set to the '.snakemake' directory relative to the working directory.
   --list, -l            Show available rules in given Snakefile. (default: False)
   --list-target-rules, --lt
                         Show available target rules in given Snakefile.
