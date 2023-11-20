@@ -8,7 +8,7 @@ function sbatch_submit() {
     if [[ -n "$DRY_RUN" ]]; then
         echo "INFO: WOULD HAVE SUBMITTED $job with args:"
         echo "INFO:     $*"
-	return
+    return
     else
         echo "INFO: SUBMITTING $job with args:"
         echo "INFO:     $*"
@@ -25,6 +25,7 @@ function sbatch_submit() {
         --job-name "$job" \
         --output "$logdir/$job.log" \
         --error "$logdir/$job.log" \
+        --image legendexp/legend-software:latest \
         --wrap "
             srun snakemake \
                 --shadow-prefix $PSCRATCH \
