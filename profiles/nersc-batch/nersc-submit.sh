@@ -63,7 +63,10 @@ version="$(basename "$PWD")"
 version="$(basename "$(dirname "$PWD")")-$version"
 
 logdir=".slurm/$(date +'%Y%m%dT%H%M%SZ')"
-[[ -n "$DRY_RUN" ]] || mkdir -p "$logdir"
+if [[ ! -n "$DRY_RUN" ]]; then
+    mkdir -p "$logdir"
+    ln -fns $(basename "$logdir") .slurm/latest
+fi
 
 if [[ "$1" == "parallel" ]]; then
     simids=$(python -c '
