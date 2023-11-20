@@ -40,26 +40,26 @@ rule gen_all_macros:
 
 
 rule gen_all_tier_raw:
-    """Aggregate and produce all the 'raw' tier files."""
+    """Aggregate and produce all the raw tier files."""
     input:
         aggregate.gen_list_of_all_plots_outputs(config, tier="raw"),
         aggregate.gen_list_of_all_simid_outputs(config, tier="raw"),
 
 
 rule gen_all_tier_hit:
-    """Aggregate and produce all the 'hit' tier files."""
+    """Aggregate and produce all the hit tier files."""
     input:
         aggregate.gen_list_of_all_simid_outputs(config, tier="hit"),
 
 
 rule gen_all_tier_evt:
-    """Aggregate and produce all the 'evt' tier files."""
+    """Aggregate and produce all the evt tier files."""
     input:
         aggregate.gen_list_of_all_tier_evt_outputs(config),
 
 
 rule gen_all_tier_pdf:
-    """Aggregate and produce all the 'pdf' tier files."""
+    """Aggregate and produce all the pdf tier files."""
     input:
         aggregate.gen_list_of_all_tier_pdf_outputs(config),
 
@@ -111,7 +111,7 @@ for tier, simid, n_macros in simconfigs:
 
     rule:
         f"""Generates all needed simulation macros ({n_macros})
-        for {simid} in tier '{tier}'. No wildcards are used.
+        for {simid} in tier {tier}. No wildcards are used.
         """
         localrule: True
         input:
@@ -123,13 +123,15 @@ for tier, simid, n_macros in simconfigs:
             simid=simid,
         threads: 1
         message:
-            f"Generating macros for '{tier}.{simid}'"
+            f"Generating macros for {tier}.{simid}"
         script:
             "scripts/generate_macros.py"
 
+    utils.set_last_rule_name(workflow, f"gen_macros_{simid}-tier_{tier}")
+
 
 rule build_tier_ver:
-    """Run a single simulation job for the 'ver' tier.
+    """Run a single simulation job for the ver tier.
     Uses wildcards `simid` and `jobid`.
 
     Note
@@ -148,7 +150,7 @@ rule build_tier_ver:
     to manually remove the output simulation files or force execution.
     """
     message:
-        "Producing output file for job 'ver.{wildcards.simid}.{wildcards.jobid}'"
+        "Producing output file for job ver.{wildcards.simid}.{wildcards.jobid}"
     input:
         macro=ancient(patterns.input_simjob_filename(config, tier="ver")),
     output:
@@ -164,7 +166,7 @@ rule build_tier_ver:
 
 
 rule build_tier_raw:
-    """Run a single simulation job for the 'raw' tier.
+    """Run a single simulation job for the raw tier.
     Uses wildcards `simid` and `jobid`.
 
     Note
@@ -183,7 +185,7 @@ rule build_tier_raw:
     to manually remove the output simulation files or force execution.
     """
     message:
-        "Producing output file for job 'raw.{wildcards.simid}.{wildcards.jobid}'"
+        "Producing output file for job raw.{wildcards.simid}.{wildcards.jobid}"
     input:
         macro=ancient(patterns.input_simjob_filename(config, tier="raw")),
         verfile=lambda wildcards: patterns.smk_ver_filename_for_raw(config, wildcards),
@@ -200,7 +202,7 @@ rule build_tier_raw:
 
 
 rule build_tier_hit:
-    """Produces a 'hit' tier file starting from a single 'raw' tier file.
+    """Produces a hit tier file starting from a single raw tier file.
 
     Note
     ----
@@ -210,7 +212,7 @@ rule build_tier_hit:
     config file is a *relative* path.
     """
     message:
-        "Producing output file for job 'hit.{wildcards.simid}.{wildcards.jobid}'"
+        "Producing output file for job hit.{wildcards.simid}.{wildcards.jobid}"
     input:
         raw_file=rules.build_tier_raw.output,
         optmap_lar=config["paths"]["optical_maps"]["lar"],
@@ -257,9 +259,9 @@ rule make_run_partition_file:
 
 
 rule build_tier_evt:
-    """Produces an 'evt' tier file."""
+    """Produces an evt tier file."""
     message:
-        "Producing output file for job 'evt.{wildcards.simid}.{wildcards.runid}'"
+        "Producing output file for job evt.{wildcards.simid}.{wildcards.runid}"
     input:
         hit_files=lambda wildcards: aggregate.gen_list_of_simid_outputs(
             config, tier="hit", simid=wildcards.simid
@@ -284,9 +286,9 @@ rule build_tier_evt:
 
 
 rule build_tier_pdf:
-    """Produces a 'pdf' tier file."""
+    """Produces a pdf tier file."""
     message:
-        "Producing output file for job 'pdf.{wildcards.simid}'"
+        "Producing output file for job pdf.{wildcards.simid}"
     input:
         evt_files=lambda wildcards: aggregate.gen_list_of_tier_evt_outputs(
             config, wildcards.simid
