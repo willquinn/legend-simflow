@@ -16,7 +16,8 @@
 for tier, simid, _ in simconfigs:
 
     rule:
-        """Produces plots for the primary event vertices."""
+        f"""Produces plots for the primary event vertices of simid {simid} in
+        tier {tier}"""
         input:
             aggregate.gen_list_of_simid_outputs(config, tier, simid, max_files=5),
         output:
@@ -30,6 +31,8 @@ for tier, simid, _ in simconfigs:
                 + workflow.source_path("../scripts/plot_mage_vertices.py")
                 + " -b -o {output} {input}"
             )
+
+    utils.set_last_rule_name(workflow, f"plot_prim_vert_{simid}-tier_{tier}")
 
 
 rule print_stats:
