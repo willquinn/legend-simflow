@@ -129,6 +129,12 @@ for file_name in args.input_files:
         df_data = pd.DataFrame(
             pytree.arrays(["energy", "npe_tot", "mage_id", "is_good"], library="np")
         )
+
+    # add a column with Poisson(mu=npe_tot) to represent the actual random
+    # number of detected photons. This column should be used to determine
+    # the LAr classifier
+    df_data["npe_tot_poisson"] = np.random.poisson(df_data.npe_tot)
+
     df_exploded = df_data.explode(["energy", "mage_id", "is_good"])
     df_ecut = df_exploded.query(f"energy > {rconfig['energy_threshold']}")
 
