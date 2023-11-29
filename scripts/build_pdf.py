@@ -102,7 +102,7 @@ hists = {
         for _rawid, _name in sorted(geds_mapping.items())
     }
     for _cut_name in rconfig["cuts"]
-    if rconfig["cuts"][_cut_name]["is_sum"] == False
+    if rconfig["cuts"][_cut_name]["is_sum"] is False
 }
 
 # When we want to start summing the energy of events we have to treat them differently
@@ -115,7 +115,7 @@ sum_hists = {
         rconfig["hist"]["emax"],
     )
     for _cut_name in rconfig["cuts"]
-    if rconfig["cuts"][_cut_name]["is_sum"] == True
+    if rconfig["cuts"][_cut_name]["is_sum"] is True
 }
 
 for file_name in args.input_files:
@@ -133,7 +133,8 @@ for file_name in args.input_files:
     # add a column with Poisson(mu=npe_tot) to represent the actual random
     # number of detected photons. This column should be used to determine
     # the LAr classifier
-    df_data["npe_tot_poisson"] = np.random.poisson(df_data.npe_tot)
+    rng = np.random.default_rng()
+    df_data["npe_tot_poisson"] = rng.poisson(df_data.npe_tot)
 
     df_exploded = df_data.explode(["energy", "mage_id", "is_good"])
     df_ecut = df_exploded.query(f"energy > {rconfig['energy_threshold']}")
@@ -162,7 +163,7 @@ for file_name in args.input_files:
 
         df_good = df_cut[df_cut.is_good == True]  # noqa: E712
 
-        if _cut_dict["is_sum"] == False:
+        if _cut_dict["is_sum"] is False:
             for __mage_id in df_good.mage_id.unique():
                 _rawid = mage_names[__mage_id]
                 _energy_array = (
