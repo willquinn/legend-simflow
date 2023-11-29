@@ -121,10 +121,12 @@ void split_K42_vertices(std::string prog = "split_K42_vertices", std::string arg
     TTree * fTree_in  = dynamic_cast<TTree*>(fTree->CloneTree(0));
 
     // get vertex position
-    double x, y, z;
-    fTree->SetBranchAddress("eventPrimaries.fSteps.fX", &x);
-    fTree->SetBranchAddress("eventPrimaries.fSteps.fY", &y);
-    fTree->SetBranchAddress("eventPrimaries.fSteps.fZ", &z);
+    MGTMCEventSteps* evt = nullptr;
+    fTree->SetBranchAddress("eventPrimaries", &evt);
+
+    // FIXME: this way of changing the number of simulated events does not work, somehow
+    // unsigned long fNEvents = 0;
+    // fTree->SetBranchAddress("fNEvents", &fNEvents);
 
     int nevents = fTree->GetEntries();
     int n_inside = 0;
@@ -132,18 +134,21 @@ void split_K42_vertices(std::string prog = "split_K42_vertices", std::string arg
     // loop events and write them in the right tree
     for(int e = 0; e < nevents; e++) {
         fTree->GetEntry(e);
+        auto v = evt->GetStep(0)->GetPositionVector();
 
-        if (point_is_inside_any_MS(x, y, z)) {
+        if (point_is_inside_any_MS(v.X(), v.Y(), v.Z())) {
+            // fNEvents *= in_fraction;
             fTree_in->Fill();
             n_inside++;
         }
-        else fTree_out->Fill();
+        else {
+            // fNEvents *= out_fraction;
+            fTree_out->Fill();
+        }
     }
 
     std::cout << "INFO: total entries: " << nevents << " of which "
               << n_inside << " inside the mini-shrouds" << std::endl;
-
-    // TODO: modify fNEvents
 
     file_of_out.Write();
     file_of_in.Write();
