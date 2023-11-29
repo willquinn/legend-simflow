@@ -46,18 +46,18 @@ for f in args.input_files:
 
 c = ROOT.TCanvas("c", "MaGe event vertices", 1000, 1000)
 c.Divide(2, 2)
-c.cd(1)
-c.SetGrid()
-tree.Draw("eventPrimaries.fSteps.fY:eventPrimaries.fSteps.fX")
-c.cd(2)
-c.SetGrid()
-tree.Draw("eventPrimaries.fSteps.fZ:eventPrimaries.fSteps.fY")
-c.cd(3)
-c.SetGrid()
-tree.Draw("eventPrimaries.fSteps.fZ:eventPrimaries.fSteps.fX")
-c.cd(4)
-c.SetGrid()
-tree.Draw("eventPrimaries.fSteps.fZ:eventPrimaries.fSteps.fY:eventPrimaries.fSteps.fX")
+
+exprs = [
+    "eventPrimaries.fSteps.fY:eventPrimaries.fSteps.fX",
+    "eventPrimaries.fSteps.fZ:eventPrimaries.fSteps.fY",
+    "eventPrimaries.fSteps.fZ:eventPrimaries.fSteps.fX",
+    "eventPrimaries.fSteps.fZ:eventPrimaries.fSteps.fY:eventPrimaries.fSteps.fX",
+]
+
+for i, expr in enumerate(exprs):
+    p = c.cd(i + 1)
+    tree.Draw(expr)
+    p.SetGrid()
 
 if args.output:
     c.SaveAs(args.output)
