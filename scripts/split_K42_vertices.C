@@ -111,14 +111,14 @@ void split_K42_vertices(std::string prog = "split_K42_vertices", std::string arg
     auto outfile_out = extra_args[2];
 
     // open file
-    TFile file(infile.c_str(), "READ");
-    TTree * fTree = dynamic_cast<TTree*>(file.Get("fTree"));
+    auto file = TFile::Open(infile.c_str(), "READ");
+    auto fTree = dynamic_cast<TTree*>(file->Get("fTree"));
 
     // create output files and copy original tree twice
-    TFile file_of_out(outfile_out.c_str(), "RECREATE");
-    TTree * fTree_out = dynamic_cast<TTree*>(fTree->CloneTree(0));
-    TFile file_of_in(outfile_in.c_str(), "RECREATE");
-    TTree * fTree_in  = dynamic_cast<TTree*>(fTree->CloneTree(0));
+    auto file_of_out = TFile::Open(outfile_out.c_str(), "RECREATE");
+    auto fTree_out = dynamic_cast<TTree*>(fTree->CloneTree(0));
+    auto file_of_in = TFile::Open(outfile_in.c_str(), "RECREATE");
+    auto fTree_in  = dynamic_cast<TTree*>(fTree->CloneTree(0));
 
     // get vertex position
     MGTMCEventSteps* evt = nullptr;
@@ -150,8 +150,6 @@ void split_K42_vertices(std::string prog = "split_K42_vertices", std::string arg
     std::cout << "INFO: total entries: " << nevents << " of which "
               << n_inside << " inside the mini-shrouds" << std::endl;
 
-    file_of_out.Write();
-    file_of_in.Write();
-
-    return;
+    file_of_out->Write();
+    file_of_in->Write();
 }
