@@ -113,20 +113,21 @@ void split_K42_vertices(std::string prog = "split_K42_vertices", std::string arg
     // open file
     auto file = TFile::Open(infile.c_str(), "READ");
     auto fTree = dynamic_cast<TTree*>(file->Get("fTree"));
+    auto n_sim_ev = std::stoul((dynamic_cast<TNamed*>(file->Get("NumberOfEvents")))->GetTitle());
 
     // create output files and copy original tree twice
     auto file_of_out = TFile::Open(outfile_out.c_str(), "RECREATE");
     auto fTree_out = dynamic_cast<TTree*>(fTree->CloneTree(0));
+    unsigned long n_sim_ev_out = n_sim_ev * out_fraction;
+    auto nev_out = new TNamed(std::to_string(n_sim_ev_out), std::to_string(n_sim_ev_out));
     auto file_of_in = TFile::Open(outfile_in.c_str(), "RECREATE");
     auto fTree_in  = dynamic_cast<TTree*>(fTree->CloneTree(0));
+    unsigned long n_sim_ev_in = n_sim_ev * in_fraction;
+    auto nev_in = new TNamed(std::to_string(n_sim_ev_in), std::to_string(n_sim_ev_in));
 
     // get vertex position
     MGTMCEventSteps* evt = nullptr;
     fTree->SetBranchAddress("eventPrimaries", &evt);
-
-    // FIXME: this way of changing the number of simulated events does not work, somehow
-    // unsigned long fNEvents = 0;
-    // fTree->SetBranchAddress("fNEvents", &fNEvents);
 
     int nevents = fTree->GetEntries();
     int n_inside = 0;
@@ -137,12 +138,10 @@ void split_K42_vertices(std::string prog = "split_K42_vertices", std::string arg
         auto v = evt->GetStep(0)->GetPositionVector();
 
         if (point_is_inside_any_MS(v.X(), v.Y(), v.Z())) {
-            // fNEvents *= in_fraction;
             fTree_in->Fill();
             n_inside++;
         }
         else {
-            // fNEvents *= out_fraction;
             fTree_out->Fill();
         }
     }
@@ -150,6 +149,13 @@ void split_K42_vertices(std::string prog = "split_K42_vertices", std::string arg
     std::cout << "INFO: total entries: " << nevents << " of which "
               << n_inside << " inside the mini-shrouds" << std::endl;
 
+    file_of_out->cd();
     file_of_out->Write();
+    nev_out->Write();
+    file_of_out->Close();
+
+    file_of_in->cd();
     file_of_in->Write();
+    nev_in->Write();
+    file_of_in->Close();
 }
