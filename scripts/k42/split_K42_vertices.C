@@ -76,11 +76,11 @@ void split_K42_vertices(std::string infile, std::string outfile_in, std::string 
     auto file_of_out = TFile::Open(outfile_out.c_str(), "RECREATE");
     auto fTree_out = dynamic_cast<TTree*>(fTree->CloneTree(0));
     unsigned long n_sim_ev_out = n_sim_ev * out_fraction;
-    auto nev_out = new TNamed(std::to_string(n_sim_ev_out), std::to_string(n_sim_ev_out));
+    auto nev_out = new TNamed("NumberOfEvents", std::to_string(n_sim_ev_out));
     auto file_of_in = TFile::Open(outfile_in.c_str(), "RECREATE");
     auto fTree_in  = dynamic_cast<TTree*>(fTree->CloneTree(0));
     unsigned long n_sim_ev_in = n_sim_ev * in_fraction;
-    auto nev_in = new TNamed(std::to_string(n_sim_ev_in), std::to_string(n_sim_ev_in));
+    auto nev_in = new TNamed("NumberOfEvents", std::to_string(n_sim_ev_in));
 
     int nevents = fTree->GetEntries();
     int n_inside = 0;
