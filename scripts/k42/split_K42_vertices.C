@@ -1,7 +1,3 @@
-//usr/bin/env root -x -q -l ${0}\(\""${0}"\",\""${*}"\"\); exit $?
-
-#include <getopt.h>
-
 struct mini_shroud {
     double height;
     double radius;
@@ -61,59 +57,20 @@ void usage() {
 }
 
 
-void split_K42_vertices(std::string prog = "split_K42_vertices", std::string args = "") {
-
-    // this is for getopt to work
-    args = prog + " " + args;
-
-    int argc = 0;
-    char** argv = new char*[50];
-
-    // get all arguments
-    std::istringstream iss(args);
-    std::string word;
-    while (iss >> word) {
-        char* tmp = new char[50];
-        strcpy(tmp, word.c_str());
-        argv[argc] = tmp;
-        argc++;
-    }
-
-    const char* const short_opts = ":h";
-    const option long_opts[] = {
-        {"help", no_argument, nullptr, 'h'},
-        {nullptr, no_argument, nullptr, 0}
-    };
-
-    // read in with getopt
-    int opt = 0;
-    while ((opt = getopt_long(argc, argv, short_opts, long_opts, nullptr)) != -1) {
-        switch (opt) {
-            case 'h': // -h or --help
-            case '?': // Unrecognized option
-            default:
-                usage();
-        }
-    }
-
-    // get extra arguments
-    std::vector<std::string> extra_args;
-    for(; optind < argc; optind++){
-        extra_args.emplace_back(argv[optind]);
-    }
-
-    if (extra_args.size() != 3) {
-        usage();
-    }
-
-    auto infile = extra_args[0];
-    auto outfile_in = extra_args[1];
-    auto outfile_out = extra_args[2];
-
+void split_K42_vertices(std::string infile, std::string outfile_in, std::string outfile_out) {
     // open file
     auto file = TFile::Open(infile.c_str(), "READ");
     auto fTree = dynamic_cast<TTree*>(file->Get("fTree"));
-    auto n_sim_ev = std::stoul((dynamic_cast<TNamed*>(file->Get("NumberOfEvents")))->GetTitle());
+    auto nev_obj = dynamic_cast<TNamed*>(file->Get("NumberOfEvents"));
+    if (!nev_obj) {
+        std::cerr << "ERROR: NumberOfEvents not found!" << std::endl;
+        gSystem->Exit(1);
+    }
+    auto n_sim_ev = std::stoul(nev_obj->GetTitle());
+
+    // get vertex position
+    MGTMCEventSteps* evt = nullptr;
+    fTree->SetBranchAddress("eventPrimaries", &evt);
 
     // create output files and copy original tree twice
     auto file_of_out = TFile::Open(outfile_out.c_str(), "RECREATE");
@@ -125,16 +82,20 @@ void split_K42_vertices(std::string prog = "split_K42_vertices", std::string arg
     unsigned long n_sim_ev_in = n_sim_ev * in_fraction;
     auto nev_in = new TNamed(std::to_string(n_sim_ev_in), std::to_string(n_sim_ev_in));
 
-    // get vertex position
-    MGTMCEventSteps* evt = nullptr;
-    fTree->SetBranchAddress("eventPrimaries", &evt);
-
     int nevents = fTree->GetEntries();
     int n_inside = 0;
 
     // loop events and write them in the right tree
     for(int e = 0; e < nevents; e++) {
         fTree->GetEntry(e);
+
+        if (!evt) std::cerr << "ERROR: eventPrimaries == nullptr" << std::endl;
+
+        if (evt->GetNSteps() != 1) {
+            std::cerr << "ERROR: number of steps in eventPrimaries != 1, skipping event" << std::endl;
+            continue;
+        }
+
         auto v = evt->GetStep(0)->GetPositionVector();
 
         if (point_is_inside_any_MS(v.X(), v.Y(), v.Z())) {
@@ -149,13 +110,15 @@ void split_K42_vertices(std::string prog = "split_K42_vertices", std::string arg
     std::cout << "INFO: total entries: " << nevents << " of which "
               << n_inside << " inside the mini-shrouds" << std::endl;
 
+    file->Close();
+
     file_of_out->cd();
-    file_of_out->Write();
+    fTree_out->Write();
     nev_out->Write();
     file_of_out->Close();
 
     file_of_in->cd();
-    file_of_in->Write();
+    fTree_in->Write();
     nev_in->Write();
     file_of_in->Close();
 }
