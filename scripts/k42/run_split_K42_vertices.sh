@@ -1,6 +1,10 @@
 #!/bin/bash
 
 doit() {
+    if [ -f "generated/tier/raw/l200a-lar-inside-ms-K42/l200a-lar-inside-ms-K42_$1-tier_raw.root" ] && \
+       [ -f "generated/tier/raw/l200a-lar-outside-ms-K42/l200a-lar-outside-ms-K42_$1-tier_raw.root" ]; then
+        return
+    fi
     echo "INFO: spawning job $1"
     shifter --image=legendexp/legend-software:latest -- \
         "./workflow/scripts/k42/split_K42_vertices.C(
