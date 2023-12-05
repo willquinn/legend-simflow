@@ -180,6 +180,9 @@ for file_name in args.input_files:
             _summed_energy_array = (
                 df_good.groupby(df_good.index).energy.sum().to_numpy(dtype=float) * 1000
             )  # keV
+            if len(_summed_energy_array) == 0:
+                continue
+
             sum_hists[_cut_name].FillN(
                 len(_summed_energy_array),
                 _summed_energy_array,
