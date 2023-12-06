@@ -69,7 +69,6 @@ args = parser.parse_args()
 if not isinstance(args.input_files, list):
     args.input_files = [args.input_files]
 
-# with Path(args.config).open() as f:
 with Path(args.config).open() as f:
     rconfig = json.load(f)
 
@@ -82,6 +81,7 @@ geds_mapping = {
 }
 n_primaries_total = 0
 
+print("INFO: computing number of simulated primaries from raw files")
 if args.raw_files:
     for file in args.raw_files:
         with uproot.open(f"{file}:fTree") as fTree:
@@ -90,6 +90,7 @@ if args.raw_files:
 # So there are many input files fed into one pdf file
 # set up the hists to fill as we go along
 # Creat a hist for all dets (even AC ones)
+print("INFO: initializing histograms")
 hists = {
     _cut_name: {
         _rawid: ROOT.TH1F(
@@ -119,17 +120,18 @@ sum_hists = {
 }
 
 for file_name in args.input_files:
-    print(file_name)
+    print("INFO: loading file", file_name)
     with uproot.open(f"{file_name}:simTree") as pytree:
         if pytree.num_entries == 0:
-            msg = f">> Error: MPP evt file {file_name} has 0 events in simTree"
-            raise Exception(msg)
+            msg = f"ERROR: MPP evt file {file_name} has 0 events in simTree"
+            raise RuntimeError(msg)
 
         n_primaries = pytree["mage_n_events"].array()[0]
         df_data = pd.DataFrame(
             pytree.arrays(["energy", "npe_tot", "mage_id", "is_good"], library="np")
         )
 
+    print("INFO: processing data")
     # add a column with Poisson(mu=npe_tot) to represent the actual random
     # number of detected photons. This column should be used to determine
     # the LAr classifier
@@ -192,6 +194,7 @@ for file_name in args.input_files:
 # The individual channels have been filled
 # now add them together to make the grouped hists
 # We don't need to worry about the ac dets as they will have zero entries
+print("INFO: making grouped pdfs")
 for _cut_name in hists:
     hists[_cut_name]["all"] = ROOT.TH1F(
         f"{_cut_name}_all",
@@ -216,6 +219,7 @@ for _cut_name in hists:
 
 # write the hists to file (but only if they have none zero entries)
 # Changes the names to drop type_ etc
+print("INFO: writing to file", args.output)
 out_file = uproot.recreate(args.output)
 for _cut_name, _hist_dict in hists.items():
     dir = out_file.mkdir(_cut_name)
