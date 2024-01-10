@@ -104,6 +104,7 @@ hists = {
     }
     for _cut_name in rconfig["cuts"]
     if rconfig["cuts"][_cut_name]["is_sum"] is False
+    and rconfig["cuts"][_cut_name]["is_2d"] is False
 }
 
 # When we want to start summing the energy of events we have to treat them differently
@@ -117,6 +118,23 @@ sum_hists = {
     )
     for _cut_name in rconfig["cuts"]
     if rconfig["cuts"][_cut_name]["is_sum"] is True
+    and rconfig["cuts"][_cut_name]["is_2d"] is False
+}
+
+# We want some 2d hists as well
+hists_2d = {
+    _cut_name: ROOT.TH2F(
+        f"{_cut_name}_2d",
+        "energy deposits",
+        rconfig["hist"]["nbins"],
+        rconfig["hist"]["emin"],
+        rconfig["hist"]["emax"],
+        rconfig["hist"]["nbins"],
+        rconfig["hist"]["emin"],
+        rconfig["hist"]["emax"],
+    )
+    for _cut_name in rconfig["cuts"]
+    if rconfig["cuts"][_cut_name]["is_2d"] is True
 }
 
 for file_name in args.input_files:
@@ -165,7 +183,7 @@ for file_name in args.input_files:
 
         df_good = df_cut[df_cut.is_good == True]  # noqa: E712
 
-        if _cut_dict["is_sum"] is False:
+        if _cut_dict["is_sum"] is False and _cut_dict["is_2d"] is False:
             for __mage_id in df_good.mage_id.unique():
                 _rawid = mage_names[__mage_id]
                 _energy_array = (
@@ -178,6 +196,19 @@ for file_name in args.input_files:
                 hists[_cut_name][_rawid].FillN(
                     len(_energy_array), _energy_array, np.ones(len(_energy_array))
                 )
+        elif _cut_dict["is_sum"] is False and _cut_dict["is_2d"] is True:
+            _energy_1_array = (
+                df_good.groupby(df_good.index).energy.max().to_numpy(dtype=float)
+            ) * 1000
+            _energy_2_array = (
+                df_good.groupby(df_good.index).energy.min().to_numpy(dtype=float)
+            ) * 1000
+            hists_2d[_cut_name].FillN(
+                len(_energy_1_array),
+                _energy_2_array,
+                _energy_1_array,
+                np.ones(len(_energy_1_array)),
+            )
         else:
             _summed_energy_array = (
                 df_good.groupby(df_good.index).energy.sum().to_numpy(dtype=float) * 1000
@@ -228,6 +259,11 @@ for _cut_name, _hist_dict in hists.items():
             dir[key] = item
 
 for _cut_name, _hist in sum_hists.items():
+    dir = out_file.mkdir(_cut_name)
+    if _hist.GetEntries() > 0:
+        dir["all"] = _hist
+
+for _cut_name, _hist in hists_2d.items():
     dir = out_file.mkdir(_cut_name)
     if _hist.GetEntries() > 0:
         dir["all"] = _hist
