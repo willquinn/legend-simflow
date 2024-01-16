@@ -91,7 +91,7 @@ def get_m2_categories(channel_array, channel_to_string, channel_to_position):
 def get_vectorised_converter(mapping):
     """Create a vectorized function converting channel to some other quantity based on a dict
     Parameters:
-         - mapping: a python dictonary of the mapping
+         - mapping: a python dictionary of the mapping
     Return:
          - a numpy vectorised function of this mapping
     """
