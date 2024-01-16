@@ -29,14 +29,8 @@ from legendmeta import LegendMetadata
 
 
 def process_mage_id(mage_ids):
-    """
-    """
-    mage_names = {
-        "name": {},
-        "channel": {},
-        "position": {},
-        "string": {}
-    }
+    """ """
+    mage_names = {"name": {}, "channel": {}, "position": {}, "string": {}}
     for _mage_id in mage_ids:
         m_id = str(_mage_id)
         is_ged = bool(int(m_id[0]))
@@ -73,11 +67,11 @@ def get_m2_categories(channel_array, channel_to_string, channel_to_position):
     Returns:
         categories: list of categories per event
     """
-    
+
     channel_array = np.vstack(channel_array)
-    channel_one = channel_array[:,0].T
-    channel_two = channel_array[:,1].T
-    
+    channel_one = channel_array[:, 0].T
+    channel_two = channel_array[:, 1].T
+
     ## convert to the list of strings
     string_one = channel_to_string(channel_one)
     string_two = channel_to_string(channel_two)
@@ -86,23 +80,24 @@ def get_m2_categories(channel_array, channel_to_string, channel_to_position):
     position_one = channel_to_position(channel_one)
     position_two = channel_to_position(channel_two)
     neighbour = np.abs(position_one - position_two) == 1
-    
+
     is_cat_one = (same_string) & (neighbour)
     is_cat_two = (same_string) & (~neighbour)
-    is_cat_three = (~same_string)
-    category = 1*is_cat_one+2*is_cat_two+3*is_cat_three
+    is_cat_three = ~same_string
+    category = 1 * is_cat_one + 2 * is_cat_two + 3 * is_cat_three
     return np.array(category)
 
 
 def get_vectorised_converter(mapping):
-    """ Create a vectorized function converting channel to some other quantity based on a dict
-        Parameters:
-             - mapping: a python dictonary of the mapping 
-        Return:
-             - a numpy vectorised function of this mapping
+    """Create a vectorized function converting channel to some other quantity based on a dict
+    Parameters:
+         - mapping: a python dictonary of the mapping
+    Return:
+         - a numpy vectorised function of this mapping
     """
+
     def channel_to_other(mage_id):
-        """ Extract which string a given channel is in"""
+        """Extract which string a given channel is in"""
 
         return mapping[mage_id]
 
@@ -228,9 +223,11 @@ for file_name in args.input_files:
     # Data has awkward length lists per event
     # exploding gives a dataframe with multiple rows per event (event no. is the index)
     df_exploded = df_data.explode(["energy", "mage_id", "is_good"])
-    
+
     # Doing this over and over again maybe slow
-    chmap_mage = process_mage_id(df_exploded.dropna(subset=["mage_id"])["mage_id"].unique())
+    chmap_mage = process_mage_id(
+        df_exploded.dropna(subset=["mage_id"])["mage_id"].unique()
+    )
     channel_to_string = get_vectorised_converter(chmap_mage["string"])
     channel_to_position = get_vectorised_converter(chmap_mage["position"])
 
@@ -264,9 +261,7 @@ for file_name in args.input_files:
             for __mage_id in df_good.mage_id.unique():
                 _rawid = chmap_mage["channel"][__mage_id]
                 _energy_array = (
-                    df_good[df_good.mage_id == __mage_id].energy.to_numpy(
-                        dtype=float
-                    )
+                    df_good[df_good.mage_id == __mage_id].energy.to_numpy(dtype=float)
                     * 1000
                 )  # keV
 
@@ -283,13 +278,23 @@ for file_name in args.input_files:
             ) * 1000
 
             if category > 0:
-                # NOTE: This is weird 
-                _mult_channel_array = (df_good.groupby(df_good.index).mage_id.apply(lambda x: x.to_numpy()).to_numpy())
-                
-                categories = get_m2_categories(_mult_channel_array, channel_to_string, channel_to_position)
+                # NOTE: This is weird
+                _mult_channel_array = (
+                    df_good.groupby(df_good.index)
+                    .mage_id.apply(lambda x: x.to_numpy())
+                    .to_numpy()
+                )
 
-                _energy_1_array=np.array(_energy_1_array)[np.where(categories==category)[0]]
-                _energy_2_array=np.array(_energy_2_array)[np.where(categories==category)[0]]
+                categories = get_m2_categories(
+                    _mult_channel_array, channel_to_string, channel_to_position
+                )
+
+                _energy_1_array = np.array(_energy_1_array)[
+                    np.where(categories == category)[0]
+                ]
+                _energy_2_array = np.array(_energy_2_array)[
+                    np.where(categories == category)[0]
+                ]
 
             hists_2d[_cut_name].FillN(
                 len(_energy_1_array),
@@ -297,14 +302,14 @@ for file_name in args.input_files:
                 _energy_1_array,
                 np.ones(len(_energy_1_array)),
             )
-                
+
         else:
             _summed_energy_array = (
                 df_good.groupby(df_good.index).energy.sum().to_numpy(dtype=float) * 1000
             )  # keV
             if len(_summed_energy_array) == 0:
                 continue
-            
+
             sum_hists[_cut_name].FillN(
                 len(_summed_energy_array),
                 _summed_energy_array,
